@@ -137,6 +137,7 @@ class APITesterHandler(BaseHTTPRequestHandler):
                             "status_code": resp.status_code,
                             "status_text": resp.reason_phrase if hasattr(resp, "reason_phrase") else "OK",
                             "elapsed_ms": elapsed_ms,
+                            "headers": dict(resp.headers),
                             "response": resp_data,
                             "curl": curl_cmd,
                             "success": 200 <= resp.status_code < 300
@@ -149,6 +150,7 @@ class APITesterHandler(BaseHTTPRequestHandler):
                             "status_code": 0,
                             "status_text": "Connection Error",
                             "elapsed_ms": elapsed_ms,
+                            "headers": {},
                             "response": {"error": str(req_err)},
                             "curl": curl_cmd,
                             "success": False
@@ -163,6 +165,82 @@ class APITesterHandler(BaseHTTPRequestHandler):
                 "results": results
             })
             return
+
+        if url.path == "/api/auth-login":
+            content_length = int(self.headers.get("Content-Length", 0))
+            raw_body = self.rfile.read(content_length)
+            try:
+                data = json.loads(raw_body.decode("utf-8"))
+            except Exception as e:
+                self._send_json(400, {"error": f"Invalid JSON payload: {str(e)}"})
+                return
+
+            login_url = data.get("loginUrl", "http://localhost:8081/v1/auth/login").strip()
+            username = data.get("username", "cbnv4")
+            password = data.get("password", "1")
+            initial_cookie = data.get("cookie", "").strip()
+
+            req_headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            if initial_cookie:
+                req_headers["Cookie"] = initial_cookie
+
+            login_payload = {
+                "username": username,
+                "password": password
+            }
+
+            client = httpx.Client(timeout=15.0, follow_redirects=True)
+            try:
+                resp = client.post(login_url, headers=req_headers, json=login_payload)
+                
+                # Trích xuất cookie từ response Set-Cookie hoặc client cookies
+                cookies_list = []
+                for k, v in resp.cookies.items():
+                    cookies_list.append(f"{k}={v}")
+                
+                # Nếu httpx client cookies rỗng, thử bóc tách từ header 'set-cookie'
+                if not cookies_list:
+                    set_cookie_raw = resp.headers.get("set-cookie", "")
+                    if set_cookie_raw:
+                        # Lấy phần trước dấu ';'
+                        first_part = set_cookie_raw.split(";")[0].strip()
+                        if first_part:
+                            cookies_list.append(first_part)
+
+                final_cookie = "; ".join(cookies_list) if cookies_list else initial_cookie
+
+                # Bóc tách csrf_token
+                csrf_token = None
+                resp_json = None
+                try:
+                    resp_json = resp.json()
+                    if isinstance(resp_json, dict):
+                        content_dict = resp_json.get("content") or {}
+                        if isinstance(content_dict, dict):
+                            csrf_token = content_dict.get("csrf_token")
+                except Exception:
+                    resp_json = resp.text
+
+                self._send_json(200, {
+                    "success": 200 <= resp.status_code < 300,
+                    "status_code": resp.status_code,
+                    "csrf_token": csrf_token,
+                    "cookie": final_cookie,
+                    "headers": dict(resp.headers),
+                    "response": resp_json
+                })
+            except Exception as req_err:
+                self._send_json(500, {
+                    "success": False,
+                    "error": str(req_err)
+                })
+            finally:
+                client.close()
+            return
+
 
         self._send_json(404, {"error": "Endpoint not found"})
 

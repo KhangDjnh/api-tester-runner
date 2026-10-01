@@ -20,6 +20,7 @@
       --success: #10b981;
       --danger: #ef4444;
       --warning: #f59e0b;
+      --purple: #a855f7;
       --code-bg: #090d16;
     }
 
@@ -38,7 +39,7 @@
     }
 
     .container {
-      max-width: 1380px;
+      max-width: 1400px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -119,6 +120,46 @@
       color: #0f172a;
     }
 
+    .btn-auth-quick {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.25));
+      border: 1px solid var(--warning);
+      color: #fbbf24;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-auth-quick:hover {
+      background: var(--warning);
+      color: #0f172a;
+    }
+
+    .btn-globals {
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid var(--purple);
+      color: #c084fc;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-globals:hover {
+      background: var(--purple);
+      color: #0f172a;
+    }
+
     /* Request URL Bar */
     .request-bar {
       display: flex;
@@ -186,7 +227,7 @@
       transform: scale(0.98);
     }
 
-    /* Tabs Card (Có thể co giãn chiều cao) */
+    /* Tabs Card (Co giãn chiều cao) */
     .tabs-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
@@ -266,7 +307,7 @@
       border-color: var(--accent);
     }
 
-    /* Tab Content (Hỗ trợ kéo đổi chiều cao tự do) */
+    /* Tab Content */
     .tab-content {
       padding: 16px;
       display: none;
@@ -350,7 +391,7 @@
       border-color: var(--accent);
     }
 
-    /* Body Tab Specific */
+    /* Editor styling */
     .body-info-bar {
       display: flex;
       justify-content: space-between;
@@ -361,7 +402,7 @@
       flex-shrink: 0;
     }
 
-    .body-editor {
+    .body-editor, .script-editor {
       flex: 1;
       width: 100%;
       min-height: 180px;
@@ -377,11 +418,15 @@
       line-height: 1.5;
     }
 
-    .body-editor:focus {
+    .script-editor {
+      color: #c084fc;
+    }
+
+    .body-editor:focus, .script-editor:focus {
       border-color: var(--accent);
     }
 
-    /* Results Section (Co giãn chiều cao tự do) */
+    /* Results Section */
     .results-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
@@ -432,7 +477,6 @@
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    /* Results List (Mapping STT) */
     .results-list {
       flex: 1;
       overflow-y: auto;
@@ -523,7 +567,6 @@
       align-items: center;
     }
 
-    /* Cho phép co giãn chiều cao từng hộp payload & response */
     .code-preview {
       font-family: 'Fira Code', monospace;
       font-size: 0.82rem;
@@ -541,7 +584,7 @@
     }
 
     .code-preview.expanded {
-      height: 500px !important;
+      height: 520px !important;
     }
 
     .btn-toggle-expand {
@@ -575,14 +618,14 @@
       font-size: 0.95rem;
     }
 
-    /* Modal Import cURL */
+    /* Modal Styling */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(4px);
       display: none;
       justify-content: center;
@@ -648,6 +691,8 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      max-height: 70vh;
+      overflow-y: auto;
     }
 
     .curl-textarea {
@@ -677,6 +722,18 @@
       justify-content: flex-end;
       align-items: center;
       gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
     /* Toast Notification */
@@ -727,8 +784,18 @@
         <span class="badge">Multi-Payload Engine</span>
       </div>
       <div class="header-actions">
+        <!-- Nút Get Authentication -->
+        <button class="btn-auth-quick" onclick="openLoginModal()">
+          <span>🔑 Get Authentication</span>
+        </button>
+        <!-- Nút Biến Toàn Cục -->
+        <button class="btn-globals" onclick="openGlobalsModal()">
+          <span>🌐 Biến Toàn Cục</span>
+          <span id="globalVarCount" class="tab-badge" style="background:#7e22ce; color:#f3e8ff;">0</span>
+        </button>
+        <!-- Nút Import cURL -->
         <button class="btn-import-curl" onclick="openCurlModal()">
-          <span>📥 Dán cURL (Import cURL)</span>
+          <span>📥 Dán cURL</span>
         </button>
         <button class="btn-secondary" onclick="formatJSON()">Beautify JSON</button>
       </div>
@@ -747,7 +814,7 @@
         id="apiUrl" 
         class="url-input" 
         type="text" 
-        placeholder="https://your-api.com/api/v1/resource"
+        placeholder="https://your-api.com/api/v1/resource (hỗ trợ {{bien_toan_cuc}})"
         value=""
       />
       <button id="btnSend" class="btn-send" onclick="runBatchTest()">
@@ -756,7 +823,7 @@
       </button>
     </div>
 
-    <!-- Tabs Container (Co giãn được chiều cao) -->
+    <!-- Tabs Container -->
     <div class="tabs-card">
       <div class="tabs-header">
         <div class="tabs-nav">
@@ -772,13 +839,17 @@
           <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
             Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
           </button>
+          <!-- Tab Script mới ở sau tab Body -->
+          <button class="tab-btn" id="btn-tab-script" onclick="openTab('tab-script', this)">
+            Script (Post-Response) <span class="tab-badge" style="background:#9333ea;">JS</span>
+          </button>
         </div>
         <!-- Bộ nút chỉnh nhanh độ cao Tab -->
         <div class="size-controls">
-          <span>↕ Chiều cao Tab:</span>
-          <button class="btn-size" onclick="setTabHeight(240)">Vừa (240px)</button>
-          <button class="btn-size" onclick="setTabHeight(450)">Lớn (450px)</button>
-          <button class="btn-size" onclick="setTabHeight(650)">Rất lớn (650px)</button>
+          <span>↕ Chiều cao:</span>
+          <button class="btn-size" onclick="setTabHeight(240)">240px</button>
+          <button class="btn-size" onclick="setTabHeight(450)">450px</button>
+          <button class="btn-size" onclick="setTabHeight(650)">650px</button>
         </div>
       </div>
 
@@ -797,7 +868,7 @@
             <tr>
               <td style="text-align:center;"><input type="checkbox" checked /></td>
               <td><input class="kv-input key-input" placeholder="Parameter key" oninput="updateParamCount()" /></td>
-              <td><input class="kv-input val-input" placeholder="Value" /></td>
+              <td><input class="kv-input val-input" placeholder="Value (hỗ trợ {{bien}})" /></td>
               <td><button class="btn-del" onclick="deleteRow(this, 'param')">×</button></td>
             </tr>
           </tbody>
@@ -809,7 +880,7 @@
       <div id="tab-auth" class="tab-content">
         <div style="max-width: 500px; display:flex; flex-direction:column; gap:12px;">
           <div>
-            <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Loại xác thực (Auth Type):</label>
+            <label class="form-label">Loại xác thực (Auth Type):</label>
             <select id="authType" class="kv-input" style="font-family:'Inter';" onchange="onAuthTypeChange()">
               <option value="none">Không xác thực (No Auth)</option>
               <option value="bearer">Bearer Token</option>
@@ -817,14 +888,17 @@
             </select>
           </div>
           <div id="tokenGroup" style="display:none;">
-            <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Token / Secret Key:</label>
-            <input id="authToken" class="kv-input" value="" placeholder="Bearer jwt_token..." />
+            <label class="form-label">Token / Secret Key (hỗ trợ {{csrf_token}}):</label>
+            <input id="authToken" class="kv-input" value="" placeholder="Bearer jwt_token hoặc {{token}}..." />
           </div>
         </div>
       </div>
 
       <!-- Tab: Header -->
       <div id="tab-header" class="tab-content">
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+          💡 Mẹo: Có thể dùng biến toàn cục như <code>{{cookie}}</code>, <code>{{csrf_token}}</code> trong ô Value.
+        </div>
         <table class="kv-table" id="headerTable">
           <thead>
             <tr>
@@ -855,7 +929,7 @@
       <!-- Tab: Body (Mảng Payloads có STT) -->
       <div id="tab-body" class="tab-content active">
         <div class="body-info-bar">
-          <span>* Định dạng luôn luôn là <strong>1 JSON Array</strong> chứa các Object payload. Mỗi item tương ứng với 1 <strong>STT</strong> kiểm thử.</span>
+          <span>* Định dạng luôn luôn là <strong>1 JSON Array</strong> chứa các Object payload (hỗ trợ biến <code>{{key}}</code>). Mỗi item tương ứng với 1 <strong>STT</strong> kiểm thử.</span>
           <span id="detectedCountText">Phát hiện: 1 payload(s)</span>
         </div>
         <textarea id="bodyPayloads" class="body-editor" oninput="updatePayloadCount()">[
@@ -864,9 +938,38 @@
   }
 ]</textarea>
       </div>
+
+      <!-- Tab: Script (Post-Response Script Engine) -->
+      <div id="tab-script" class="tab-content">
+        <div class="body-info-bar">
+          <span>JavaScript chạy tự động sau khi nhận Response từ API. Dùng hàm <code>setGlobal("key", value)</code> để tự động lưu token / cookie vào biến toàn cục.</span>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-size" onclick="insertScriptSnippet('auth')">Mẫu: Lưu csrf_token & cookie</button>
+            <button class="btn-size" onclick="insertScriptSnippet('clear')">Xóa script</button>
+          </div>
+        </div>
+        <textarea id="postScript" class="script-editor" placeholder="// Viết mã JavaScript tự động chạy sau khi test xong...
+// Ví dụ:
+// results.forEach(res => {
+//   if (res.response && res.response.content && res.response.content.csrf_token) {
+//     setGlobal('csrf_token', res.response.content.csrf_token);
+//   }
+// });">// Script tự động lưu csrf_token và cookie vào Biến Toàn Cục sau khi test
+results.forEach(res => {
+  // 1. Lưu csrf_token nếu có trong response.content
+  if (res.response && res.response.content && res.response.content.csrf_token) {
+    setGlobal("csrf_token", res.response.content.csrf_token);
+  }
+  // 2. Lưu cookie từ header Set-Cookie nếu có
+  if (res.headers && res.headers["set-cookie"]) {
+    const setCookie = res.headers["set-cookie"].split(";")[0];
+    setGlobal("cookie", setCookie);
+  }
+});</textarea>
+      </div>
     </div>
 
-    <!-- Results Section (Co giãn chiều cao tự do & cuộn mượt mà) -->
+    <!-- Results Section -->
     <div class="results-card" id="resultsCard">
       <div class="results-header">
         <div style="display:flex; align-items:center; gap:12px;">
@@ -893,6 +996,89 @@
     </div>
   </div>
 
+  <!-- Modal Get Authentication (Login API) -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>🔑 Get Authentication (Đăng nhập CMS)</h3>
+        <button class="modal-close" onclick="closeLoginModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted);">
+          Gọi API đăng nhập CMS để tự động lấy <code>csrf_token</code> và <code>cookie session</code>, sau đó tự động lưu vào Biến Toàn Cục.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">URL Login API:</label>
+          <input id="loginApiUrl" class="kv-input" value="http://localhost:8081/v1/auth/login" />
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Username:</label>
+            <input id="loginUsername" class="kv-input" value="cbnv4" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password:</label>
+            <input id="loginPassword" type="password" class="kv-input" value="1" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cookie khởi tạo (Session Cookie):</label>
+          <input id="loginCookie" class="kv-input" value="cms_session=XP7pJZRdvbTwxf2_bwpMiCYXfPC85KOOwoK6uv6sQQk" />
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <input type="checkbox" id="autoAttachHeaders" checked style="cursor:pointer;" />
+          <label for="autoAttachHeaders" style="font-size:0.85rem; cursor:pointer; color:var(--text-main);">
+            Tự động gắn header <code>x-csrf-token</code> và <code>Cookie</code> vào bảng Header
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeLoginModal()">Hủy</button>
+        <button id="btnLoginExec" class="btn-auth-quick" style="padding:8px 18px;" onclick="executeLogin()">
+          <span id="loginBtnIcon">🚀</span>
+          <span id="loginBtnText">Đăng Nhập & Lấy Token</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Quản Lý Biến Toàn Cục -->
+  <div id="globalsModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>🌐 Quản Lý Biến Toàn Cục (Global Variables)</h3>
+        <button class="modal-close" onclick="closeGlobalsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted);">
+          Các biến được định nghĩa ở đây có thể dùng ở bất kỳ đâu trong <strong>URL, Header, Param, Body</strong> theo cú pháp: <code>{{tên_biến}}</code>.
+        </p>
+
+        <table class="kv-table" id="globalsTable">
+          <thead>
+            <tr>
+              <th style="width: 180px;">Tên biến (Key)</th>
+              <th>Giá trị (Value)</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Sẽ được render động từ globalVariables -->
+          </tbody>
+        </table>
+        <button class="btn-add-row" onclick="addGlobalRow()">+ Thêm Biến</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeGlobalsModal()">Đóng</button>
+        <button class="btn-send" onclick="saveGlobalsFromTable()">Lưu Biến Toàn Cục</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Dán cURL -->
   <div id="curlModal" class="modal-overlay">
     <div class="modal-box">
@@ -909,7 +1095,7 @@
           class="curl-textarea" 
           placeholder="Dán câu lệnh curl tại đây...
 Ví dụ:
-curl --location 'https://api.example.com/v1/resource' \
+curl --location 'http://localhost:8081/v1/image-gallery/folders/...' \
 --header 'content-type: application/json' \
 --data '{ ... }'"
         ></textarea>
@@ -927,7 +1113,238 @@ curl --location 'https://api.example.com/v1/resource' \
   <div id="toast" class="toast"></div>
 
   <script>
-    // --- Tabs Handling ---
+    // ==========================================
+    // 1. QUẢN LÝ BIẾN TOÀN CỤC (GLOBAL VARIABLES)
+    // ==========================================
+    const DEFAULT_GLOBALS = {
+      "cookie": "cms_session=XP7pJZRdvbTwxf2_bwpMiCYXfPC85KOOwoK6uv6sQQk",
+      "csrf_token": ""
+    };
+
+    let globalVariables = {};
+
+    function initGlobals() {
+      try {
+        const stored = localStorage.getItem("api_tester_globals");
+        if (stored) {
+          globalVariables = JSON.parse(stored);
+        } else {
+          globalVariables = { ...DEFAULT_GLOBALS };
+          saveGlobals();
+        }
+      } catch (e) {
+        globalVariables = { ...DEFAULT_GLOBALS };
+      }
+      updateGlobalBadge();
+    }
+
+    function saveGlobals() {
+      localStorage.setItem("api_tester_globals", JSON.stringify(globalVariables));
+      updateGlobalBadge();
+    }
+
+    function setGlobal(key, val) {
+      if (!key) return;
+      globalVariables[key.trim()] = String(val !== undefined && val !== null ? val : "");
+      saveGlobals();
+    }
+
+    function getGlobal(key) {
+      return globalVariables[key] !== undefined ? globalVariables[key] : "";
+    }
+
+    function updateGlobalBadge() {
+      const keys = Object.keys(globalVariables);
+      document.getElementById('globalVarCount').innerText = keys.length;
+    }
+
+    // Thay thế toàn bộ {{bien}} bằng giá trị thực
+    function substituteVariables(text) {
+      if (typeof text !== 'string') return text;
+      return text.replace(/\{\{\s*([a-zA-Z0-9_\-\.]+)\s*\}\}/g, (match, key) => {
+        return globalVariables[key] !== undefined ? globalVariables[key] : match;
+      });
+    }
+
+    function openGlobalsModal() {
+      renderGlobalsTable();
+      document.getElementById('globalsModal').classList.add('active');
+    }
+
+    function closeGlobalsModal() {
+      document.getElementById('globalsModal').classList.remove('active');
+    }
+
+    function renderGlobalsTable() {
+      const tbody = document.querySelector('#globalsTable tbody');
+      tbody.innerHTML = "";
+      for (const [k, v] of Object.entries(globalVariables)) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="kv-input g-key" value="${escapeHtml(k)}" /></td>
+          <td><input class="kv-input g-val" value="${escapeHtml(v)}" /></td>
+          <td><button class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function addGlobalRow() {
+      const tbody = document.querySelector('#globalsTable tbody');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="kv-input g-key" placeholder="Tên biến (VD: token)" /></td>
+        <td><input class="kv-input g-val" placeholder="Giá trị" /></td>
+        <td><button class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function saveGlobalsFromTable() {
+      const newGlobals = {};
+      document.querySelectorAll('#globalsTable tbody tr').forEach(tr => {
+        const k = tr.querySelector('.g-key').value.trim();
+        const v = tr.querySelector('.g-val').value;
+        if (k) newGlobals[k] = v;
+      });
+      globalVariables = newGlobals;
+      saveGlobals();
+      closeGlobalsModal();
+      showToast("💾 Đã lưu danh sách Biến Toàn Cục!");
+    }
+
+    // ==========================================
+    // 2. GET AUTHENTICATION (LOGIN CMS)
+    // ==========================================
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+
+    async function executeLogin() {
+      const loginUrl = document.getElementById('loginApiUrl').value.trim();
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const cookie = document.getElementById('loginCookie').value.trim();
+      const autoAttach = document.getElementById('autoAttachHeaders').checked;
+
+      const btn = document.getElementById('btnLoginExec');
+      const btnIcon = document.getElementById('loginBtnIcon');
+      const btnText = document.getElementById('loginBtnText');
+
+      btn.disabled = true;
+      btnIcon.innerHTML = `<span class="spinner"></span>`;
+      btnText.innerText = "Đang đăng nhập...";
+
+      try {
+        const response = await fetch('/api/auth-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            loginUrl,
+            username,
+            password,
+            cookie
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || (data.response && JSON.stringify(data.response)) || "Đăng nhập thất bại");
+        }
+
+        // Cập nhật biến toàn cục
+        if (data.csrf_token) {
+          setGlobal("csrf_token", data.csrf_token);
+        }
+        if (data.cookie) {
+          setGlobal("cookie", data.cookie);
+        }
+
+        // Tự động thêm header vào bảng Header nếu được chọn
+        if (autoAttach) {
+          ensureHeader("x-csrf-token", "{{csrf_token}}");
+          ensureHeader("Cookie", "{{cookie}}");
+        }
+
+        closeLoginModal();
+        showToast("🎉 Đăng nhập thành công! Đã cập nhật csrf_token và Cookie vào Biến Toàn Cục.");
+
+      } catch (err) {
+        alert("Lỗi đăng nhập: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnIcon.innerHTML = "🚀";
+        btnText.innerText = "Đăng Nhập & Lấy Token";
+      }
+    }
+
+    function ensureHeader(keyName, valPattern) {
+      let found = false;
+      document.querySelectorAll('#headerTable tbody tr').forEach(tr => {
+        const k = tr.querySelector('.key-input').value.trim();
+        if (k.toLowerCase() === keyName.toLowerCase()) {
+          tr.querySelector('.val-input').value = valPattern;
+          tr.querySelector('input[type="checkbox"]').checked = true;
+          found = true;
+        }
+      });
+      if (!found) {
+        const tbody = document.querySelector('#headerTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="text-align:center;"><input type="checkbox" checked /></td>
+          <td><input class="kv-input key-input" value="${escapeHtml(keyName)}" oninput="updateHeaderCount()" /></td>
+          <td><input class="kv-input val-input" value="${escapeHtml(valPattern)}" /></td>
+          <td><button class="btn-del" onclick="deleteRow(this, 'header')">×</button></td>
+        `;
+        tbody.appendChild(tr);
+        updateHeaderCount();
+      }
+    }
+
+    // ==========================================
+    // 3. SCRIPT ENGINE (POST-RESPONSE)
+    // ==========================================
+    function insertScriptSnippet(type) {
+      const editor = document.getElementById('postScript');
+      if (type === 'auth') {
+        editor.value = `// Tự động lưu csrf_token và cookie vào Biến Toàn Cục
+results.forEach(res => {
+  if (res.response && res.response.content && res.response.content.csrf_token) {
+    setGlobal("csrf_token", res.response.content.csrf_token);
+  }
+  if (res.headers && res.headers["set-cookie"]) {
+    const setCookie = res.headers["set-cookie"].split(";")[0];
+    setGlobal("cookie", setCookie);
+  }
+});`;
+      } else {
+        editor.value = "";
+      }
+      showToast("✨ Đã cập nhật Script!");
+    }
+
+    function runPostResponseScript(results) {
+      const scriptCode = document.getElementById('postScript').value.trim();
+      if (!scriptCode) return;
+
+      try {
+        const runFn = new Function('results', 'setGlobal', 'getGlobal', 'showToast', scriptCode);
+        runFn(results, setGlobal, getGlobal, showToast);
+      } catch (err) {
+        console.error("Lỗi thực thi Script:", err);
+        showToast("⚠️ Lỗi chạy Script: " + err.message);
+      }
+    }
+
+    // ==========================================
+    // 4. TABS & UI HELPERS
+    // ==========================================
     function openTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -935,7 +1352,6 @@ curl --location 'https://api.example.com/v1/resource' \
       if (btn) btn.classList.add('active');
     }
 
-    // --- Điều khiển chiều cao của Tabs Card ---
     function setTabHeight(px) {
       document.querySelectorAll('.tab-content').forEach(el => {
         el.style.height = px + 'px';
@@ -943,21 +1359,19 @@ curl --location 'https://api.example.com/v1/resource' \
       showToast(`↕ Đã chỉnh chiều cao Tab: ${px}px`);
     }
 
-    // --- Điều khiển chiều cao của Results Card ---
     function setResultsHeight(px) {
       const card = document.getElementById('resultsCard');
       card.style.height = px + 'px';
       showToast(`↕ Đã chỉnh chiều cao Kết quả: ${px}px`);
     }
 
-    // --- Key-Value Table Handling ---
     function addRow(tableId, type) {
       const tbody = document.querySelector(`#${tableId} tbody`);
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="text-align:center;"><input type="checkbox" checked /></td>
         <td><input class="kv-input key-input" placeholder="${type === 'header' ? 'Header name' : 'Parameter key'}" oninput="updateCounts()" /></td>
-        <td><input class="kv-input val-input" placeholder="Value" /></td>
+        <td><input class="kv-input val-input" placeholder="Value (hỗ trợ {{bien}})" /></td>
         <td><button class="btn-del" onclick="deleteRow(this, '${type}')">×</button></td>
       `;
       tbody.appendChild(tr);
@@ -1031,10 +1445,10 @@ curl --location 'https://api.example.com/v1/resource' \
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
 
-    // --- Modal cURL Handlers ---
+    // Modal cURL
     function openCurlModal() {
       document.getElementById('curlModal').classList.add('active');
       document.getElementById('curlInput').focus();
@@ -1044,29 +1458,18 @@ curl --location 'https://api.example.com/v1/resource' \
       document.getElementById('curlModal').classList.remove('active');
     }
 
-    // --- Parser Lệnh cURL ---
+    // Parser Lệnh cURL
     function parseCurlCommand(raw) {
-      if (!raw || !raw.trim()) {
-        throw new Error("Lệnh cURL không được để trống!");
-      }
+      if (!raw || !raw.trim()) throw new Error("Lệnh cURL không được để trống!");
+      let text = raw.trim().replace(/\\\s*\n/g, ' ').replace(/\\\s*\r\n/g, ' ');
 
-      let text = raw.trim();
-
-      // Loại bỏ ký tự nối dòng "\" ở cuối hàng
-      text = text.replace(/\\\s*\n/g, ' ').replace(/\\\s*\r\n/g, ' ');
-
-      // Tách chuỗi thành tokens có xem xét dấu nháy đơn '...' và nháy kép "..."
       const tokens = [];
       const regex = /[^\s"']+|"([^"\\]*(?:\\.[^"\\]*)*)"|'([^'\\]*(?:\\.[^'\\]*)*)'/g;
       let match;
       while ((match = regex.exec(text)) !== null) {
-        if (match[1] !== undefined) {
-          tokens.push(match[1].replace(/\\"/g, '"'));
-        } else if (match[2] !== undefined) {
-          tokens.push(match[2].replace(/\\'/g, "'"));
-        } else {
-          tokens.push(match[0]);
-        }
+        if (match[1] !== undefined) tokens.push(match[1].replace(/\\"/g, '"'));
+        else if (match[2] !== undefined) tokens.push(match[2].replace(/\\'/g, "'"));
+        else tokens.push(match[0]);
       }
 
       if (tokens.length === 0 || tokens[0].toLowerCase() !== 'curl') {
@@ -1080,28 +1483,19 @@ curl --location 'https://api.example.com/v1/resource' \
 
       for (let i = 1; i < tokens.length; i++) {
         const token = tokens[i];
-
-        if (token === '-X' || token === '--request') {
-          method = tokens[++i]?.toUpperCase();
-        } else if (token === '-H' || token === '--header') {
+        if (token === '-X' || token === '--request') method = tokens[++i]?.toUpperCase();
+        else if (token === '-H' || token === '--header') {
           const h = tokens[++i];
           if (h) headers.push(h);
         } else if (token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary' || token === '--json') {
           data = tokens[++i];
           if (!method) method = 'POST';
-        } else if (token === '-L' || token === '--location') {
-          continue;
-        } else if (token.startsWith('http://') || token.startsWith('https://')) {
-          url = token;
-        } else if (!token.startsWith('-') && !url) {
-          url = token;
-        }
+        } else if (token === '-L' || token === '--location') continue;
+        else if (token.startsWith('http://') || token.startsWith('https://')) url = token;
+        else if (!token.startsWith('-') && !url) url = token;
       }
 
-      if (!method) {
-        method = data ? 'POST' : 'GET';
-      }
-
+      if (!method) method = data ? 'POST' : 'GET';
       return { method, url, headers, data };
     }
 
@@ -1109,17 +1503,15 @@ curl --location 'https://api.example.com/v1/resource' \
       const curlText = document.getElementById('curlInput').value;
       try {
         const parsed = parseCurlCommand(curlText);
-
         if (!parsed.url) {
           alert("Không tìm thấy URL hợp lệ trong lệnh cURL!");
           return;
         }
 
-        // 1. Gán Method & URL
         document.getElementById('httpMethod').value = parsed.method || 'POST';
         document.getElementById('apiUrl').value = parsed.url;
 
-        // 2. Tách Query Parameters từ URL (nếu có)
+        // Parse query params
         try {
           const u = new URL(parsed.url);
           const paramsTbody = document.querySelector('#paramTable tbody');
@@ -1136,12 +1528,10 @@ curl --location 'https://api.example.com/v1/resource' \
             paramsTbody.appendChild(tr);
             pCount++;
           });
-          if (pCount === 0) {
-            addRow('paramTable', 'param');
-          }
+          if (pCount === 0) addRow('paramTable', 'param');
         } catch (e) {}
 
-        // 3. Đổ Headers vào Header Table
+        // Headers
         const headerTbody = document.querySelector('#headerTable tbody');
         headerTbody.innerHTML = "";
         let hCount = 0;
@@ -1170,17 +1560,13 @@ curl --location 'https://api.example.com/v1/resource' \
           }
         });
 
-        if (hCount === 0) {
-          addRow('headerTable', 'header');
-        }
+        if (hCount === 0) addRow('headerTable', 'header');
 
-        // 4. Xử lý Body (Payloads)
+        // Body
         if (parsed.data) {
           try {
             let dataObj = JSON.parse(parsed.data);
-            if (!Array.isArray(dataObj)) {
-              dataObj = [dataObj];
-            }
+            if (!Array.isArray(dataObj)) dataObj = [dataObj];
             document.getElementById('bodyPayloads').value = JSON.stringify(dataObj, null, 2);
           } catch (e) {
             document.getElementById('bodyPayloads').value = `[\n  ${parsed.data}\n]`;
@@ -1189,10 +1575,7 @@ curl --location 'https://api.example.com/v1/resource' \
 
         updateCounts();
         updatePayloadCount();
-
-        // Chuyển sang Tab Body
         openTab('tab-body', document.getElementById('btn-tab-body'));
-
         closeCurlModal();
         showToast("🎉 Đã Import cURL thành công vào giao diện!");
 
@@ -1206,25 +1589,33 @@ curl --location 'https://api.example.com/v1/resource' \
       document.querySelectorAll(`#${tableId} tbody tr`).forEach(tr => {
         const checked = tr.querySelector('input[type="checkbox"]').checked;
         const key = tr.querySelector('.key-input').value.trim();
-        const val = tr.querySelector('.val-input').value.trim();
+        const rawVal = tr.querySelector('.val-input').value.trim();
         if (checked && key) {
-          result[key] = val;
+          // Áp dụng biến toàn cục cho giá trị
+          result[key] = substituteVariables(rawVal);
         }
       });
       return result;
     }
 
+    // ==========================================
+    // 5. CHẠY BATCH TEST & KẾT HỢP SCRIPT
+    // ==========================================
     async function runBatchTest() {
       const btn = document.getElementById('btnSend');
       const btnText = document.getElementById('btnText');
       const btnIcon = document.getElementById('btnIcon');
       const resultsContainer = document.getElementById('resultsList');
 
-      // 1. Thu thập dữ liệu
+      // 1. Thu thập và thay thế biến toàn cục
       const method = document.getElementById('httpMethod').value;
-      const url = document.getElementById('apiUrl').value.trim();
+      const rawUrl = document.getElementById('apiUrl').value.trim();
+      const url = substituteVariables(rawUrl);
+
       const authType = document.getElementById('authType').value;
-      const authToken = document.getElementById('authToken').value.trim();
+      const rawAuthToken = document.getElementById('authToken').value.trim();
+      const authToken = substituteVariables(rawAuthToken);
+
       const params = collectTableData('paramTable');
       const headers = collectTableData('headerTable');
 
@@ -1236,16 +1627,15 @@ curl --location 'https://api.example.com/v1/resource' \
       let payloads = [];
       try {
         const rawBody = document.getElementById('bodyPayloads').value.trim();
-        payloads = JSON.parse(rawBody);
-        if (!Array.isArray(payloads)) {
-          payloads = [payloads];
-        }
+        // Thay thế biến toàn cục trong Body
+        const replacedBody = substituteVariables(rawBody);
+        payloads = JSON.parse(replacedBody);
+        if (!Array.isArray(payloads)) payloads = [payloads];
       } catch (err) {
         alert("Lỗi cú pháp JSON trong tab Body: " + err.message);
         return;
       }
 
-      // UI Loading state
       btnText.innerText = "Đang chạy test...";
       btnIcon.innerHTML = `<span class="spinner"></span>`;
       btn.disabled = true;
@@ -1272,6 +1662,9 @@ curl --location 'https://api.example.com/v1/resource' \
         }
 
         renderResults(data);
+
+        // Chạy Script (Post-Response)
+        runPostResponseScript(data.results);
 
       } catch (err) {
         resultsContainer.innerHTML = `
@@ -1356,7 +1749,8 @@ curl --location 'https://api.example.com/v1/resource' \
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Khởi tạo
+    // Khởi tạo app
+    initGlobals();
     updateCounts();
   </script>
 </body>
