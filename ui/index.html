@@ -426,7 +426,7 @@
       border-color: var(--accent);
     }
 
-    /* Results Section */
+    /* Results Section: CHỈ 1 THANH TRƯỢT & CHIỀU CAO THAY ĐỔI LINH HOẠT */
     .results-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
@@ -435,11 +435,10 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      height: 520px;
-      min-height: 250px;
-      max-height: 88vh;
+      min-height: 300px;
+      height: 580px; /* Chiều cao mặc định */
       resize: vertical;
-      overflow: auto;
+      overflow: hidden; /* QUAN TRỌNG: Ẩn thanh trượt của card ngoài để không bị 2 thanh trượt */
       position: relative;
     }
 
@@ -449,7 +448,7 @@
       align-items: center;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border-color);
-      flex-shrink: 0;
+      flex-shrink: 0; /* Giữ cố định header khi cuộn */
     }
 
     .results-stats {
@@ -477,13 +476,32 @@
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
+    /* Results List: THANH TRƯỢT DUY NHẤT */
     .results-list {
       flex: 1;
-      overflow-y: auto;
+      min-height: 0; /* Cho phép co giãn trọn vẹn trong flex container */
+      overflow-y: auto; /* THANH TRƯỢT DUY NHẤT Ở ĐÂY */
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      padding-right: 4px;
+      padding-right: 6px;
+    }
+
+    /* Custom scrollbar mượt mà */
+    .results-list::-webkit-scrollbar {
+      width: 7px;
+    }
+    .results-list::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+    .results-list::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    .results-list::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
     }
 
     .result-item {
@@ -839,17 +857,17 @@
           <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
             Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
           </button>
-          <!-- Tab Script mới ở sau tab Body -->
           <button class="tab-btn" id="btn-tab-script" onclick="openTab('tab-script', this)">
             Script (Post-Response) <span class="tab-badge" style="background:#9333ea;">JS</span>
           </button>
         </div>
         <!-- Bộ nút chỉnh nhanh độ cao Tab -->
         <div class="size-controls">
-          <span>↕ Chiều cao:</span>
+          <span>↕ Chiều cao Tab:</span>
           <button class="btn-size" onclick="setTabHeight(240)">240px</button>
           <button class="btn-size" onclick="setTabHeight(450)">450px</button>
           <button class="btn-size" onclick="setTabHeight(650)">650px</button>
+          <button class="btn-size" onclick="setTabHeight('auto')">Tự động</button>
         </div>
       </div>
 
@@ -969,16 +987,17 @@ results.forEach(res => {
       </div>
     </div>
 
-    <!-- Results Section -->
+    <!-- Results Section: CHIỀU CAO LINH HOẠT VÀ CHỈ CÓ 1 THANH TRƯỢT -->
     <div class="results-card" id="resultsCard">
       <div class="results-header">
         <div style="display:flex; align-items:center; gap:12px;">
           <h2 style="font-size:1.05rem; font-weight:600;">Kết Quả Kiểm Thử (Ánh Xạ Đúng STT)</h2>
           <div class="size-controls">
             <span>↕ Chiều cao kết quả:</span>
-            <button class="btn-size" onclick="setResultsHeight(400)">400px</button>
+            <button class="btn-size" onclick="setResultsHeight('auto')">Tự động (Auto)</button>
+            <button class="btn-size" onclick="setResultsHeight(450)">450px</button>
             <button class="btn-size" onclick="setResultsHeight(650)">650px</button>
-            <button class="btn-size" onclick="setResultsHeight(900)">900px</button>
+            <button class="btn-size" onclick="setResultsHeight(850)">850px</button>
           </div>
         </div>
         <div class="results-stats" id="statsBar">
@@ -988,6 +1007,7 @@ results.forEach(res => {
         </div>
       </div>
 
+      <!-- DANH SÁCH KẾT QUẢ: NƠI DUY NHẤT CÓ THANH TRƯỢT -->
       <div class="results-list" id="resultsList">
         <div class="empty-state">
           Chưa thực thi kiểm thử. Dán cURL hoặc điền URL & mảng payload rồi nhấn <strong>"Send & Test"</strong> để bắt đầu.
@@ -1067,7 +1087,7 @@ results.forEach(res => {
             </tr>
           </thead>
           <tbody>
-            <!-- Sẽ được render động từ globalVariables -->
+            <!-- Render động từ globalVariables -->
           </tbody>
         </table>
         <button class="btn-add-row" onclick="addGlobalRow()">+ Thêm Biến</button>
@@ -1158,7 +1178,6 @@ curl --location 'http://localhost:8081/v1/image-gallery/folders/...' \
       document.getElementById('globalVarCount').innerText = keys.length;
     }
 
-    // Thay thế toàn bộ {{bien}} bằng giá trị thực
     function substituteVariables(text) {
       if (typeof text !== 'string') return text;
       return text.replace(/\{\{\s*([a-zA-Z0-9_\-\.]+)\s*\}\}/g, (match, key) => {
@@ -1257,7 +1276,6 @@ curl --location 'http://localhost:8081/v1/image-gallery/folders/...' \
           throw new Error(data.error || (data.response && JSON.stringify(data.response)) || "Đăng nhập thất bại");
         }
 
-        // Cập nhật biến toàn cục
         if (data.csrf_token) {
           setGlobal("csrf_token", data.csrf_token);
         }
@@ -1265,7 +1283,6 @@ curl --location 'http://localhost:8081/v1/image-gallery/folders/...' \
           setGlobal("cookie", data.cookie);
         }
 
-        // Tự động thêm header vào bảng Header nếu được chọn
         if (autoAttach) {
           ensureHeader("x-csrf-token", "{{csrf_token}}");
           ensureHeader("Cookie", "{{cookie}}");
@@ -1343,7 +1360,7 @@ results.forEach(res => {
     }
 
     // ==========================================
-    // 4. TABS & UI HELPERS
+    // 4. ĐIỀU CHỈNH CHIỀU CAO LINH HOẠT
     // ==========================================
     function openTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1352,17 +1369,30 @@ results.forEach(res => {
       if (btn) btn.classList.add('active');
     }
 
-    function setTabHeight(px) {
+    function setTabHeight(val) {
       document.querySelectorAll('.tab-content').forEach(el => {
-        el.style.height = px + 'px';
+        if (val === 'auto') {
+          el.style.height = 'auto';
+          el.style.maxHeight = 'none';
+        } else {
+          el.style.height = val + 'px';
+          el.style.maxHeight = '85vh';
+        }
       });
-      showToast(`↕ Đã chỉnh chiều cao Tab: ${px}px`);
+      showToast(val === 'auto' ? '↕ Chiều cao Tab: Tự động' : `↕ Chiều cao Tab: ${val}px`);
     }
 
-    function setResultsHeight(px) {
+    function setResultsHeight(val) {
       const card = document.getElementById('resultsCard');
-      card.style.height = px + 'px';
-      showToast(`↕ Đã chỉnh chiều cao Kết quả: ${px}px`);
+      if (val === 'auto') {
+        card.style.height = 'auto';
+        card.style.maxHeight = 'none';
+        showToast('↕ Chiều cao Kết quả: Tự động co giãn theo nội dung');
+      } else {
+        card.style.height = val + 'px';
+        card.style.maxHeight = '92vh';
+        showToast(`↕ Chiều cao Kết quả: ${val}px`);
+      }
     }
 
     function addRow(tableId, type) {
@@ -1445,7 +1475,7 @@ results.forEach(res => {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
     // Modal cURL
@@ -1591,7 +1621,6 @@ results.forEach(res => {
         const key = tr.querySelector('.key-input').value.trim();
         const rawVal = tr.querySelector('.val-input').value.trim();
         if (checked && key) {
-          // Áp dụng biến toàn cục cho giá trị
           result[key] = substituteVariables(rawVal);
         }
       });
@@ -1607,7 +1636,6 @@ results.forEach(res => {
       const btnIcon = document.getElementById('btnIcon');
       const resultsContainer = document.getElementById('resultsList');
 
-      // 1. Thu thập và thay thế biến toàn cục
       const method = document.getElementById('httpMethod').value;
       const rawUrl = document.getElementById('apiUrl').value.trim();
       const url = substituteVariables(rawUrl);
@@ -1627,7 +1655,6 @@ results.forEach(res => {
       let payloads = [];
       try {
         const rawBody = document.getElementById('bodyPayloads').value.trim();
-        // Thay thế biến toàn cục trong Body
         const replacedBody = substituteVariables(rawBody);
         payloads = JSON.parse(replacedBody);
         if (!Array.isArray(payloads)) payloads = [payloads];
