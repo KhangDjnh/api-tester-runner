@@ -436,7 +436,7 @@
       flex-direction: column;
       gap: 14px;
       min-height: 300px;
-      height: 600px;
+      height: 850px;
       resize: vertical;
       overflow: hidden; /* Tránh 2 thanh trượt */
       position: relative;
@@ -2043,7 +2043,7 @@ results.forEach(res => {
         showToast('↕ Chiều cao Kết quả: Tự động co giãn theo nội dung');
       } else {
         card.style.height = val + 'px';
-        card.style.maxHeight = '92vh';
+        card.style.maxHeight = 'none';
         showToast(`↕ Chiều cao Kết quả: ${val}px`);
       }
     }
