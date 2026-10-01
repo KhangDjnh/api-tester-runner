@@ -38,11 +38,11 @@
     }
 
     .container {
-      max-width: 1280px;
+      max-width: 1380px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
     /* Header */
@@ -50,12 +50,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--border-color);
     }
 
     .title-group h1 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -83,7 +83,7 @@
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 8px 14px;
+      padding: 7px 13px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.85rem;
@@ -103,7 +103,7 @@
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid var(--accent);
       color: var(--accent);
-      padding: 8px 14px;
+      padding: 7px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.85rem;
@@ -186,22 +186,31 @@
       transform: scale(0.98);
     }
 
-    /* Tabs Card */
+    /* Tabs Card (Có thể co giãn chiều cao) */
     .tabs-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .tabs-header {
       display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #151f32;
       border-bottom: 1px solid var(--border-color);
+      padding-right: 12px;
+    }
+
+    .tabs-nav {
+      display: flex;
     }
 
     .tab-btn {
-      padding: 12px 22px;
+      padding: 11px 20px;
       background: transparent;
       border: none;
       color: var(--text-muted);
@@ -233,13 +242,46 @@
       border-radius: 10px;
     }
 
+    .size-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-size {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+    }
+
+    .btn-size:hover {
+      color: var(--text-main);
+      border-color: var(--accent);
+    }
+
+    /* Tab Content (Hỗ trợ kéo đổi chiều cao tự do) */
     .tab-content {
       padding: 16px;
       display: none;
+      height: 320px;
+      min-height: 180px;
+      max-height: 80vh;
+      resize: vertical;
+      overflow: auto;
+      border-bottom: 2px solid transparent;
+      position: relative;
     }
 
     .tab-content.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Key-Value Tables */
@@ -292,6 +334,7 @@
 
     .btn-add-row {
       margin-top: 10px;
+      align-self: flex-start;
       background: transparent;
       border: 1px dashed var(--border-color);
       color: var(--text-muted);
@@ -312,14 +355,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-size: 0.85rem;
       color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     .body-editor {
+      flex: 1;
       width: 100%;
-      height: 240px;
+      min-height: 180px;
       background: var(--code-bg);
       color: #38bdf8;
       border: 1px solid var(--border-color);
@@ -336,7 +381,7 @@
       border-color: var(--accent);
     }
 
-    /* Results Section */
+    /* Results Section (Co giãn chiều cao tự do) */
     .results-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
@@ -344,7 +389,13 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      height: 520px;
+      min-height: 250px;
+      max-height: 88vh;
+      resize: vertical;
+      overflow: auto;
+      position: relative;
     }
 
     .results-header {
@@ -353,11 +404,12 @@
       align-items: center;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
     }
 
     .results-stats {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       font-size: 0.85rem;
     }
 
@@ -382,9 +434,12 @@
 
     /* Results List (Mapping STT) */
     .results-list {
+      flex: 1;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      padding-right: 4px;
     }
 
     .result-item {
@@ -393,6 +448,7 @@
       border-radius: 8px;
       overflow: hidden;
       transition: border-color 0.2s;
+      flex-shrink: 0;
     }
 
     .result-item:hover {
@@ -452,6 +508,8 @@
     .grid-col {
       background: var(--code-bg);
       padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
     }
 
     .grid-col-title {
@@ -462,16 +520,43 @@
       margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
+    /* Cho phép co giãn chiều cao từng hộp payload & response */
     .code-preview {
       font-family: 'Fira Code', monospace;
       font-size: 0.82rem;
-      max-height: 250px;
-      overflow-y: auto;
+      min-height: 120px;
+      height: 220px;
+      resize: vertical;
+      overflow: auto;
       white-space: pre-wrap;
       word-break: break-all;
       color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      padding: 10px;
+      line-height: 1.45;
+    }
+
+    .code-preview.expanded {
+      height: 500px !important;
+    }
+
+    .btn-toggle-expand {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .btn-toggle-expand:hover {
+      color: var(--accent);
+      border-color: var(--accent);
     }
 
     .curl-btn {
@@ -485,7 +570,7 @@
 
     .empty-state {
       text-align: center;
-      padding: 40px;
+      padding: 60px 20px;
       color: var(--text-muted);
       font-size: 0.95rem;
     }
@@ -671,21 +756,30 @@
       </button>
     </div>
 
-    <!-- Tabs Container -->
+    <!-- Tabs Container (Co giãn được chiều cao) -->
     <div class="tabs-card">
       <div class="tabs-header">
-        <button class="tab-btn" id="btn-tab-param" onclick="openTab('tab-param', this)">
-          Param <span id="paramCount" class="tab-badge">0</span>
-        </button>
-        <button class="tab-btn" id="btn-tab-auth" onclick="openTab('tab-auth', this)">
-          Authorize
-        </button>
-        <button class="tab-btn" id="btn-tab-header" onclick="openTab('tab-header', this)">
-          Header <span id="headerCount" class="tab-badge">2</span>
-        </button>
-        <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
-          Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
-        </button>
+        <div class="tabs-nav">
+          <button class="tab-btn" id="btn-tab-param" onclick="openTab('tab-param', this)">
+            Param <span id="paramCount" class="tab-badge">0</span>
+          </button>
+          <button class="tab-btn" id="btn-tab-auth" onclick="openTab('tab-auth', this)">
+            Authorize
+          </button>
+          <button class="tab-btn" id="btn-tab-header" onclick="openTab('tab-header', this)">
+            Header <span id="headerCount" class="tab-badge">2</span>
+          </button>
+          <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
+            Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
+          </button>
+        </div>
+        <!-- Bộ nút chỉnh nhanh độ cao Tab -->
+        <div class="size-controls">
+          <span>↕ Chiều cao Tab:</span>
+          <button class="btn-size" onclick="setTabHeight(240)">Vừa (240px)</button>
+          <button class="btn-size" onclick="setTabHeight(450)">Lớn (450px)</button>
+          <button class="btn-size" onclick="setTabHeight(650)">Rất lớn (650px)</button>
+        </div>
       </div>
 
       <!-- Tab: Param -->
@@ -772,10 +866,18 @@
       </div>
     </div>
 
-    <!-- Results Section -->
-    <div class="results-card">
+    <!-- Results Section (Co giãn chiều cao tự do & cuộn mượt mà) -->
+    <div class="results-card" id="resultsCard">
       <div class="results-header">
-        <h2 style="font-size:1.1rem; font-weight:600;">Kết Quả Kiểm Thử (Ánh Xạ Đúng STT)</h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <h2 style="font-size:1.05rem; font-weight:600;">Kết Quả Kiểm Thử (Ánh Xạ Đúng STT)</h2>
+          <div class="size-controls">
+            <span>↕ Chiều cao kết quả:</span>
+            <button class="btn-size" onclick="setResultsHeight(400)">400px</button>
+            <button class="btn-size" onclick="setResultsHeight(650)">650px</button>
+            <button class="btn-size" onclick="setResultsHeight(900)">900px</button>
+          </div>
+        </div>
         <div class="results-stats" id="statsBar">
           <span class="stat-pill" id="totalStat">Tổng: 0</span>
           <span class="stat-pill stat-success" id="successStat">Thành công: 0</span>
@@ -831,6 +933,21 @@ curl --location 'https://api.example.com/v1/resource' \
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       if (btn) btn.classList.add('active');
+    }
+
+    // --- Điều khiển chiều cao của Tabs Card ---
+    function setTabHeight(px) {
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.style.height = px + 'px';
+      });
+      showToast(`↕ Đã chỉnh chiều cao Tab: ${px}px`);
+    }
+
+    // --- Điều khiển chiều cao của Results Card ---
+    function setResultsHeight(px) {
+      const card = document.getElementById('resultsCard');
+      card.style.height = px + 'px';
+      showToast(`↕ Đã chỉnh chiều cao Kết quả: ${px}px`);
     }
 
     // --- Key-Value Table Handling ---
@@ -914,7 +1031,7 @@ curl --location 'https://api.example.com/v1/resource' \
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
     // --- Modal cURL Handlers ---
@@ -1177,7 +1294,7 @@ curl --location 'https://api.example.com/v1/resource' \
       const list = document.getElementById('resultsList');
       list.innerHTML = "";
 
-      data.results.forEach(res => {
+      data.results.forEach((res, index) => {
         let badgeClass = "status-2xx";
         if (res.status_code >= 400 && res.status_code < 500) badgeClass = "status-4xx";
         if (res.status_code >= 500 || res.status_code === 0) badgeClass = "status-5xx";
@@ -1191,7 +1308,10 @@ curl --location 'https://api.example.com/v1/resource' \
               <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${res.status_text}</span>
               <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
             </div>
-            <div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button class="btn-toggle-expand" onclick="toggleExpand('preview-payload-${index}', 'preview-resp-${index}', this)">
+                🔍 Xem toàn bộ
+              </button>
               <button class="curl-btn" onclick="copyCurl('${encodeURIComponent(res.curl)}')">Copy cURL</button>
             </div>
           </div>
@@ -1199,19 +1319,31 @@ curl --location 'https://api.example.com/v1/resource' \
             <div class="grid-col">
               <div class="grid-col-title">
                 <span>Payload Gửi Đi (STT #${res.stt})</span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">↘ Kéo góc để giãn</span>
               </div>
-              <pre class="code-preview">${escapeHtml(JSON.stringify(res.payload, null, 2))}</pre>
+              <pre id="preview-payload-${index}" class="code-preview">${escapeHtml(JSON.stringify(res.payload, null, 2))}</pre>
             </div>
             <div class="grid-col">
               <div class="grid-col-title">
                 <span>Response Nhận Được (STT #${res.stt})</span>
+                <span style="font-size:0.7rem; color:var(--text-muted);">↘ Kéo góc để giãn</span>
               </div>
-              <pre class="code-preview">${escapeHtml(JSON.stringify(res.response, null, 2))}</pre>
+              <pre id="preview-resp-${index}" class="code-preview">${escapeHtml(JSON.stringify(res.response, null, 2))}</pre>
             </div>
           </div>
         `;
         list.appendChild(item);
       });
+    }
+
+    function toggleExpand(id1, id2, btn) {
+      const el1 = document.getElementById(id1);
+      const el2 = document.getElementById(id2);
+      if (el1 && el2) {
+        const isExp = el1.classList.toggle('expanded');
+        el2.classList.toggle('expanded', isExp);
+        btn.innerText = isExp ? "Thu gọn" : "🔍 Xem toàn bộ";
+      }
     }
 
     function copyCurl(encodedCurl) {
