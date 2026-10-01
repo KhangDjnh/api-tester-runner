@@ -1818,29 +1818,54 @@ results.forEach(res => {
       showToast("📁 Đã thu gọn các object!");
     }
 
-    function copyToClipboard(text) {
-      if (navigator.clipboard && window.isSecureContext) {
-        return navigator.clipboard.writeText(text);
-      } else {
-        return new Promise((resolve, reject) => {
-          const textArea = document.createElement("textarea");
-          textArea.value = text;
-          textArea.style.position = "fixed";
-          textArea.style.left = "-999999px";
-          textArea.style.top = "-999999px";
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          try {
-            const successful = document.execCommand('copy');
-            textArea.remove();
-            successful ? resolve() : reject(new Error("Không thể copy"));
-          } catch (err) {
-            textArea.remove();
-            reject(err);
-          }
-        });
+    async function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return;
+        } catch (err) {
+          console.warn("navigator.clipboard error, fallback to execCommand", err);
+        }
       }
+      return new Promise((resolve, reject) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand('copy');
+          textArea.remove();
+          successful ? resolve() : reject(new Error("Không thể copy"));
+        } catch (err) {
+          textArea.remove();
+          reject(err);
+        }
+      });
+    }
+
+    function copyResultJsonByIndex(index, type, btn) {
+      const item = window.lastBatchResults && window.lastBatchResults[index];
+      if (!item) return;
+      const dataObj = type === 'payload' ? item.payload : item.response;
+      const jsonStr = typeof dataObj === 'string' ? dataObj : JSON.stringify(dataObj, null, 2);
+      copyToClipboard(jsonStr).then(() => {
+        showToast(`📋 Đã sao chép JSON ${type === 'payload' ? 'Payload' : 'Response'} thành công!`);
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = "✓ Đã copy!";
+          btn.style.color = "#34d399";
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.style.color = "";
+          }, 2000);
+        }
+      }).catch(() => {
+        showToast("⚠️ Không thể tự động copy, vui lòng thử lại!");
+      });
     }
 
     function copyContainerJson(dataStr, btn) {
@@ -1946,6 +1971,9 @@ results.forEach(res => {
       document.getElementById('successStat').innerText = `Thành công (2xx): ${data.success_count}`;
       document.getElementById('failStat').innerText = `Lỗi / Thất bại: ${data.failed_count}`;
 
+      // Lưu kết quả vào biến toàn cục trên window để truy xuất an toàn theo index (không bị lỗi escape quote trong inline HTML)
+      window.lastBatchResults = data.results || [];
+
       const list = document.getElementById('resultsList');
       list.innerHTML = "";
 
@@ -1961,9 +1989,6 @@ results.forEach(res => {
         const payloadTreeHtml = buildJsonTree(res.payload);
         const respTreeHtml = buildJsonTree(res.response);
 
-        const payloadRawStr = encodeURIComponent(JSON.stringify(res.payload, null, 2));
-        const respRawStr = encodeURIComponent(JSON.stringify(res.response, null, 2));
-
         const item = document.createElement('div');
         item.className = "result-item";
         item.innerHTML = `
@@ -1974,7 +1999,7 @@ results.forEach(res => {
               <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-              <button class="curl-btn" onclick="copyCurl('${encodeURIComponent(res.curl)}', this)">Copy cURL</button>
+              <button class="curl-btn" onclick="copyCurlByIndex(${index}, this)">Copy cURL</button>
             </div>
           </div>
           <div class="result-body-grid">
@@ -1985,7 +2010,7 @@ results.forEach(res => {
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${payloadId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${payloadId}')">- Thu gọn</button>
-                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${payloadRawStr}', this)">📋 Copy</button>
+                  <button class="btn-tool" title="Copy JSON" onclick="copyResultJsonByIndex(${index}, 'payload', this)">📋 Copy</button>
                 </div>
               </div>
               <div id="${payloadId}" class="json-tree-container">
@@ -2000,7 +2025,7 @@ results.forEach(res => {
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${respId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${respId}')">- Thu gọn</button>
-                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${respRawStr}', this)">📋 Copy</button>
+                  <button class="btn-tool" title="Copy JSON" onclick="copyResultJsonByIndex(${index}, 'response', this)">📋 Copy</button>
                 </div>
               </div>
               <div id="${respId}" class="json-tree-container">
@@ -2013,8 +2038,37 @@ results.forEach(res => {
       });
     }
 
+    function copyCurlByIndex(index, btn) {
+      const item = window.lastBatchResults && window.lastBatchResults[index];
+      if (!item || !item.curl) {
+        showToast("⚠️ Không tìm thấy lệnh cURL để sao chép!");
+        return;
+      }
+      const curl = item.curl;
+      copyToClipboard(curl).then(() => {
+        showToast("📋 Đã sao chép câu lệnh cURL thành công!");
+        if (btn) {
+          const origText = btn.innerHTML;
+          btn.classList.add('copied');
+          btn.innerHTML = "✓ Đã copy cURL!";
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = origText;
+          }, 2000);
+        }
+      }).catch((err) => {
+        console.error("Lỗi sao chép cURL:", err);
+        prompt("Sao chép câu lệnh cURL thủ công bên dưới:", curl);
+      });
+    }
+
     function copyCurl(encodedCurl, btn) {
-      const curl = decodeURIComponent(encodedCurl);
+      let curl = encodedCurl;
+      try {
+        if (typeof encodedCurl === 'string' && encodedCurl.includes('%')) {
+          curl = decodeURIComponent(encodedCurl);
+        }
+      } catch (e) {}
       copyToClipboard(curl).then(() => {
         showToast("📋 Đã sao chép câu lệnh cURL thành công!");
         if (btn) {
