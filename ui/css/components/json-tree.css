@@ -1,0 +1,102 @@
+/* JSON COLLAPSIBLE TREE VIEWER */
+.json-tree-container {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.82rem;
+  min-height: 120px;
+  height: 250px;
+  resize: vertical;
+  overflow: auto;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  background: #090d16;
+}
+
+.json-collapsible {
+  display: inline;
+}
+
+.json-toggle {
+  cursor: pointer;
+  display: inline-block;
+  width: 14px;
+  color: #38bdf8;
+  font-size: 0.7rem;
+  user-select: none;
+  transition: color 0.1s;
+  vertical-align: middle;
+}
+
+.json-toggle:hover {
+  color: #fff;
+}
+
+.json-bracket {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.json-collapsed-text {
+  display: none;
+  color: #64748b;
+  font-style: italic;
+  font-size: 0.75rem;
+  margin: 0 4px;
+  cursor: pointer;
+}
+
+.json-collapsed-text:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+
+.json-block {
+  display: block;
+  margin-left: 18px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-left: 8px;
+}
+
+/* Khi đóng node lại */
+.json-collapsible.closed > .json-block {
+  display: none !important;
+}
+
+.json-collapsible.closed > .json-collapsed-text {
+  display: inline !important;
+}
+
+.json-key {
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+.json-str {
+  color: #34d399;
+  word-break: break-all;
+}
+
+.json-num {
+  color: #f59e0b;
+}
+
+.json-bool {
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.json-null {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.json-index {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.json-line {
+  margin: 2px 0;
+}

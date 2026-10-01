@@ -54,7 +54,25 @@ api-testing/
 │   │   └── test_template.py   # Template kịch bản kiểm thử API tự động bằng Pytest
 │   └── ui/                    # Thư mục dành cho test suite giao diện (Playwright)
 ├── ui/
-│   └── index.html             # Giao diện Web API Tester Runner (Single Page App)
+│   ├── index.html             # Khung HTML giao diện (Semantic, gọn gàng ~260 dòng)
+│   ├── css/                   # Hệ thống Style phân tán theo Module & Component
+│   │   ├── main.css           # File tổng hợp import toàn bộ styles
+│   │   ├── variables.css      # Design tokens, bảng màu, biến giao diện
+│   │   ├── base.css           # Reset CSS, container, spinner utility
+│   │   └── components/        # CSS theo từng khối (header, tabs, results, json-tree, modal)
+│   └── js/                    # Logic JavaScript bóc tách theo miền nghiệp vụ
+│       ├── app.js             # Bootstrap ứng dụng, khởi tạo & phím tắt (Ctrl+Enter, Esc)
+│       ├── state.js           # Quản lý Biến toàn cục ({{key}}), lưu trữ LocalStorage
+│       ├── runner.js          # Engine chạy Batch Test & Gửi lại từng request, edit inline
+│       ├── json-viewer.js     # Trình hiển thị & thu gọn JSON cây (Collapsible Tree)
+│       ├── url-sync.js        # Đồng bộ 2 chiều giữa URL Bar và Bảng Query Parameters
+│       ├── curl-parser.js     # Phân tích lệnh cURL và sinh cURL command
+│       ├── script-engine.js   # Bộ thực thi Post-response JavaScript sandbox
+│       ├── ui-tabs.js         # Điều hướng Tabs, chỉnh chiều cao linh hoạt, bảng KV
+│       ├── modals.js          # Xử lý Modal: Login CMS, Biến toàn cục, Import cURL, Failed TCs
+│       ├── utils.js           # Các hàm tiện ích dùng chung (escapeHtml, copy, toast)
+│       └── data/
+│           └── default-cases.js # 26 kịch bản kiểm thử mẫu (phân tách khỏi HTML)
 ├── reports/
 │   └── test_report.html       # Báo cáo kết quả kiểm thử Pytest (HTML Report)
 ├── app.py                     # HTTP Server backend điều phối chạy batch test và mock login

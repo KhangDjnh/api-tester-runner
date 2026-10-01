@@ -1,0 +1,66 @@
+/* Request Bar Component */
+.request-bar {
+  display: flex;
+  gap: 10px;
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.method-select {
+  background: #0b1329;
+  color: #38bdf8;
+  border: 1px solid var(--border-color);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.method-select option {
+  background: var(--bg-secondary);
+  color: var(--text-main);
+}
+
+.url-input {
+  flex: 1;
+  background: #0b1329;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: 'Fira Code', monospace;
+  outline: none;
+}
+
+.url-input:focus {
+  border-color: var(--accent);
+}
+
+.btn-send {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.btn-send:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+
+.btn-send:active {
+  transform: scale(0.98);
+}

@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import mimetypes
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
@@ -48,21 +49,36 @@ class APITesterHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         url = urlparse(self.path)
+        req_path = url.path.lstrip("/")
 
-        if url.path in ("/", "/index.html"):
-            index_path = STATIC_DIR / "index.html"
-            if index_path.exists():
-                with open(index_path, "rb") as f:
-                    content = f.read()
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(content)))
-                self.end_headers()
-                self.wfile.write(content)
-                return
-            else:
-                self._send_json(404, {"error": "UI index.html not found"})
-                return
+        if req_path in ("", "index.html"):
+            file_path = STATIC_DIR / "index.html"
+        else:
+            file_path = (STATIC_DIR / req_path).resolve()
+
+        # Bảo vệ path traversal: file_path phải nằm trong STATIC_DIR
+        try:
+            file_path.relative_to(STATIC_DIR.resolve())
+        except ValueError:
+            self._send_json(403, {"error": "Forbidden"})
+            return
+
+        if file_path.is_file():
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            if not mime_type:
+                mime_type = "application/octet-stream"
+            if mime_type.startswith("text/") or "javascript" in mime_type or mime_type == "application/json":
+                mime_type += "; charset=utf-8"
+
+            with open(file_path, "rb") as f:
+                content = f.read()
+
+            self.send_response(200)
+            self.send_header("Content-Type", mime_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+            return
 
         self._send_json(404, {"error": "Not Found"})
 

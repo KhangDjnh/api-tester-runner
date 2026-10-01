@@ -1,0 +1,113 @@
+/* Header Component */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title-group h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-main);
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 7px 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent);
+}
+
+.btn-import-curl {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-import-curl:hover {
+  background: var(--accent);
+  color: #0f172a;
+}
+
+.btn-auth-quick {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.25));
+  border: 1px solid var(--warning);
+  color: #fbbf24;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-auth-quick:hover {
+  background: var(--warning);
+  color: #0f172a;
+}
+
+.btn-globals {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid var(--purple);
+  color: #c084fc;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-globals:hover {
+  background: var(--purple);
+  color: #0f172a;
+}
