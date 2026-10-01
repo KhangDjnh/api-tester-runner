@@ -9,8 +9,14 @@ import httpx
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "ui"
 
-def generate_curl(method: str, url: str, headers: dict, json_data: any = None) -> str:
-    parts = [f"curl -X {method} '{url}'"]
+def generate_curl(method: str, url: str, headers: dict, json_data: any = None, params: dict = None) -> str:
+    final_url = url
+    if params and "?" not in url:
+        from urllib.parse import urlencode
+        qs = urlencode(params)
+        if qs:
+            final_url = f"{url}?{qs}"
+    parts = [f"curl -X {method} '{final_url}'"]
     for k, v in headers.items():
         parts.append(f"-H '{k}: {v}'")
     if json_data is not None:
@@ -126,15 +132,18 @@ class APITesterHandler(BaseHTTPRequestHandler):
                         expected_status = None
                         actual_payload = item
 
+                    # Tránh nhân đôi query parameters nếu target_url đã chứa sẵn query string từ UI
+                    req_params = None if ("?" in target_url) else (params if params else None)
+
                     # Sinh cURL command từ actual_payload
-                    curl_cmd = generate_curl(method, target_url, req_headers, actual_payload if method != "GET" else None)
+                    curl_cmd = generate_curl(method, target_url, req_headers, actual_payload if method != "GET" else None, req_params)
                     start_time = time.perf_counter()
                     
                     try:
                         if method == "GET":
-                            resp = client.request(method=method, url=target_url, params=params, headers=req_headers)
+                            resp = client.request(method=method, url=target_url, params=req_params, headers=req_headers)
                         else:
-                            resp = client.request(method=method, url=target_url, params=params, headers=req_headers, json=actual_payload)
+                            resp = client.request(method=method, url=target_url, params=req_params, headers=req_headers, json=actual_payload)
                         
                         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
