@@ -600,13 +600,113 @@
       border-radius: 4px;
     }
 
-    .result-tc-desc {
-      padding: 8px 16px;
-      background: rgba(15, 23, 42, 0.6);
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.85rem;
+    .clickable-stat {
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      user-select: none;
+    }
+    .clickable-stat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      filter: brightness(1.2);
+    }
+    .clickable-stat:active {
+      transform: translateY(0);
+    }
+
+    .result-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .tc-header-desc {
+      font-size: 0.88rem;
       color: #cbd5e1;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    @keyframes pulseBorder {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8);
+        border-color: #ef4444;
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.25);
+        border-color: #f87171;
+        background: rgba(239, 68, 68, 0.08);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        border-color: var(--border-color);
+      }
+    }
+
+    .highlight-pulse {
+      animation: pulseBorder 1.2s ease-in-out 3;
+      border-color: #ef4444 !important;
+    }
+
+    /* Modal danh sách test case thất bại */
+    .failed-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .failed-card {
+      background: #111a2e;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 8px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .failed-card:hover {
+      border-color: #ef4444;
+      background: #162038;
+      transform: translateX(4px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .failed-card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .failed-card-desc {
+      font-size: 0.88rem;
+      color: #e2e8f0;
       line-height: 1.4;
+    }
+
+    .failed-card-reason {
+      font-size: 0.82rem;
+      background: rgba(239, 68, 68, 0.12);
+      border-left: 3px solid #ef4444;
+      padding: 6px 10px;
+      border-radius: 0 4px 4px 0;
+      color: #fca5a5;
+      line-height: 1.4;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .jump-hint {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
     }
 
     .item-failed {
@@ -1420,7 +1520,7 @@ results.forEach(res => {
     <div class="results-card" id="resultsCard">
       <div class="results-header">
         <div style="display:flex; align-items:center; gap:12px;">
-          <h2 style="font-size:1.05rem; font-weight:600;">Kết Quả Kiểm Thử (Ánh Xạ Đúng STT)</h2>
+          <h2 style="font-size:1.05rem; font-weight:600;">Kết Quả Kiểm Thử Test Cases</h2>
           <div class="size-controls">
             <span>↕ Chiều cao kết quả:</span>
             <button class="btn-size" onclick="setResultsHeight('auto')">Tự động (Auto)</button>
@@ -1431,16 +1531,39 @@ results.forEach(res => {
         </div>
         <div class="results-stats" id="statsBar">
           <span class="stat-pill" id="totalStat">Tổng: 0</span>
-          <span class="stat-pill stat-success" id="successStat">Thành công: 0</span>
-          <span class="stat-pill stat-fail" id="failStat">Lỗi / Thất bại: 0</span>
+          <span class="stat-pill stat-success" id="successStat">PASSED: 0</span>
+          <span class="stat-pill stat-fail clickable-stat" id="failStat" onclick="openFailedModal()" title="Nhấn để xem danh sách test case thất bại & lý do">FAILED: 0</span>
         </div>
       </div>
 
       <!-- DANH SÁCH KẾT QUẢ: NƠI DUY NHẤT CÓ THANH TRƯỢT -->
       <div class="results-list" id="resultsList">
         <div class="empty-state">
-          Chưa thực thi kiểm thử. Dán cURL hoặc điền URL & mảng payload rồi nhấn <strong>"Send & Test"</strong> để bắt đầu.
+          Chưa thực thi kiểm thử. Dán cURL hoặc điền URL & mảng test cases rồi nhấn <strong>"Send & Test"</strong> để bắt đầu.
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Danh Sách Test Case Thất Bại -->
+  <div id="failedModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 750px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 style="color:#f87171;">🚨 Danh Sách Test Case Thất Bại (<span id="failedModalCount">0</span>)</h3>
+        </div>
+        <button class="modal-close" onclick="closeFailedModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
+          💡 Nhấp vào một test case bên dưới để chuyển trực tiếp đến kết quả payload và response chi tiết tương ứng.
+        </p>
+        <div id="failedModalList" class="failed-modal-list">
+          <!-- Các test case lỗi sẽ render ở đây -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeFailedModal()">Đóng</button>
       </div>
     </div>
   </div>
@@ -1537,7 +1660,7 @@ results.forEach(res => {
       </div>
       <div class="modal-body">
         <p style="font-size:0.85rem; color:var(--text-muted);">
-          Dán câu lệnh <code>curl</code> từ Postman, DevTools hoặc tài liệu API vào đây. Hệ thống sẽ tự động tách Method, URL, Headers và trích xuất Body thành <strong>mảng payload có STT</strong>.
+          Dán câu lệnh <code>curl</code> từ Postman, DevTools hoặc tài liệu API vào đây. Hệ thống sẽ tự động tách Method, URL, Headers và trích xuất Body thành <strong>mảng test cases / payloads</strong>.
         </p>
         <textarea 
           id="curlInput" 
@@ -2295,7 +2418,13 @@ results.forEach(res => {
       document.getElementById('totalStat').innerText = `Tổng: ${data.total}`;
       const passedCount = data.passed_count !== undefined ? data.passed_count : data.success_count;
       document.getElementById('successStat').innerText = `PASSED: ${passedCount}`;
-      document.getElementById('failStat').innerText = `FAILED: ${data.failed_count}`;
+      
+      const failStatEl = document.getElementById('failStat');
+      if (data.failed_count > 0) {
+        failStatEl.innerHTML = `🚨 FAILED: ${data.failed_count} <span style="font-size:0.75rem; text-decoration:underline; opacity:0.85;">(Xem chi tiết)</span>`;
+      } else {
+        failStatEl.innerText = `FAILED: 0`;
+      }
 
       // Lưu kết quả vào biến toàn cục trên window để truy xuất an toàn theo index (không bị lỗi escape quote trong inline HTML)
       window.lastBatchResults = data.results || [];
@@ -2326,37 +2455,34 @@ results.forEach(res => {
           `;
         }
 
-        // Test Case ID Tag
-        const tcTag = res.test_case_id 
-          ? `<span class="tc-tag" title="Mã Test Case">${escapeHtml(res.test_case_id)}</span>`
-          : `<span class="stt-tag">STT #${res.stt}</span>`;
-
-        // Description
-        const descHtml = res.description 
-          ? `<div class="result-tc-desc">📌 <strong>Kịch bản:</strong> ${escapeHtml(res.description)}</div>`
-          : "";
+        const tcTag = `<span class="tc-tag" title="Mã Test Case">${escapeHtml(res.test_case_id || `TC${index + 1}`)}</span>`;
 
         const item = document.createElement('div');
         item.className = `result-item ${res.passed === false ? 'item-failed' : ''}`;
+        item.setAttribute('data-tc-id', res.test_case_id || `TC${index + 1}`);
+
         item.innerHTML = `
           <div class="result-item-header">
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="stt-tag">#${res.stt}</span>
-              ${tcTag}
-              ${assertionHtml}
-              <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${res.status_text}</span>
-              <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
+            <div class="result-header-left">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                ${tcTag}
+                ${assertionHtml}
+                <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${res.status_text}</span>
+                <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
+              </div>
+              <div class="tc-header-desc">
+                📌 <strong>Mô tả:</strong> ${escapeHtml(res.description || 'Không có mô tả')}
+              </div>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
               <button class="curl-btn" onclick="copyCurlByIndex(${index}, this)">Copy cURL</button>
             </div>
           </div>
-          ${descHtml}
           <div class="result-body-grid">
             <!-- CỘT REQUEST PAYLOAD (CÓ THU GỌN OBJECT) -->
             <div class="grid-col">
               <div class="grid-col-title">
-                <span>Payload Gửi Đi (${res.test_case_id || 'STT #' + res.stt})</span>
+                <span>Payload Gửi Đi (${escapeHtml(res.test_case_id || '')})</span>
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${payloadId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${payloadId}')">- Thu gọn</button>
@@ -2371,7 +2497,7 @@ results.forEach(res => {
             <!-- CỘT RESPONSE NHẬN ĐƯỢC (CÓ THU GỌN OBJECT) -->
             <div class="grid-col">
               <div class="grid-col-title">
-                <span>Response Nhận Được (${res.test_case_id || 'STT #' + res.stt})</span>
+                <span>Response Nhận Được (${escapeHtml(res.test_case_id || '')})</span>
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${respId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${respId}')">- Thu gọn</button>
@@ -2386,6 +2512,99 @@ results.forEach(res => {
         `;
         list.appendChild(item);
       });
+    }
+
+    function openFailedModal() {
+      const results = window.lastBatchResults || [];
+      const failed = results.filter(r => !r.passed);
+
+      if (failed.length === 0) {
+        showToast("🎉 Tuyệt vời! Tất cả các test case đều ĐẠT (Passed), không có lỗi nào.");
+        return;
+      }
+
+      document.getElementById('failedModalCount').innerText = failed.length;
+      const listContainer = document.getElementById('failedModalList');
+      listContainer.innerHTML = "";
+
+      failed.forEach(res => {
+        let badgeClass = "status-5xx";
+        if (res.status_code >= 400 && res.status_code < 500) badgeClass = "status-4xx";
+        if (res.status_code >= 200 && res.status_code < 300) badgeClass = "status-2xx";
+
+        const reason = getFailureReason(res);
+        const card = document.createElement('div');
+        card.className = "failed-card";
+        card.onclick = () => jumpToTestCase(res.test_case_id);
+
+        card.innerHTML = `
+          <div class="failed-card-top">
+            <span class="tc-tag">${escapeHtml(res.test_case_id || 'TC')}</span>
+            <span class="assertion-badge badge-fail">✗ FAILED</span>
+            <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${escapeHtml(res.status_text || '')}</span>
+            ${res.expected_status ? `<span class="expected-tag">Kỳ vọng: ${res.expected_status}</span>` : ''}
+            <span class="jump-hint">👉 Bấm để xem chi tiết</span>
+          </div>
+          <div class="failed-card-desc">
+            📝 <strong>Kịch bản:</strong> ${escapeHtml(res.description || 'Không có mô tả')}
+          </div>
+          <div class="failed-card-reason">
+            ⚠️ <strong>Lý do thất bại:</strong> ${escapeHtml(reason)}
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+
+      document.getElementById('failedModal').classList.add('active');
+    }
+
+    function closeFailedModal() {
+      document.getElementById('failedModal').classList.remove('active');
+    }
+
+    function getFailureReason(res) {
+      if (res.status_code === 0) {
+        const errMsg = (res.response && res.response.error) ? res.response.error : (res.status_text || 'Mất kết nối');
+        return `Lỗi kết nối tới máy chủ: ${errMsg}`;
+      }
+      let reason = "";
+      if (res.expected_status !== undefined && res.expected_status !== null) {
+        reason = `Kỳ vọng HTTP ${res.expected_status} nhưng API trả về ${res.status_code} (${res.status_text})`;
+      } else {
+        reason = `API trả về mã lỗi HTTP ${res.status_code} (${res.status_text})`;
+      }
+
+      // Trích xuất error message từ response nếu có
+      if (res.response && typeof res.response === 'object') {
+        const resp = res.response;
+        const msg = resp.message || resp.error || resp.detail || (resp.base && resp.base.message);
+        if (msg) {
+          reason += ` — Nội dung phản hồi: "${msg}"`;
+        }
+      } else if (typeof res.response === 'string' && res.response.length > 0) {
+        const shortText = res.response.length > 120 ? res.response.substring(0, 120) + '...' : res.response;
+        reason += ` — Phản hồi: "${shortText}"`;
+      }
+      return reason;
+    }
+
+    function jumpToTestCase(tcId) {
+      closeFailedModal();
+      if (!tcId) return;
+
+      const target = document.querySelector(`[data-tc-id="${CSS.escape(tcId)}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.remove('highlight-pulse');
+        void target.offsetWidth; // trigger reflow
+        target.classList.add('highlight-pulse');
+        setTimeout(() => {
+          target.classList.remove('highlight-pulse');
+        }, 3600);
+        showToast(`🎯 Đã chuyển đến test case: ${tcId}`);
+      } else {
+        showToast(`⚠️ Không tìm thấy test case ${tcId}`);
+      }
     }
 
     function copyCurlByIndex(index, btn) {
