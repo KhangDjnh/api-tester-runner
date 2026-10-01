@@ -2687,9 +2687,56 @@ results.forEach(res => {
           btnEdit.innerHTML = "✏️ Sửa";
           btnEdit.classList.remove('editing-active');
         }
-        showToast("💾 Đã lưu thay đổi Payload! Nhấn [▶ Send] để gửi lại.");
+
+        // Đồng bộ luôn nội dung vào mảng JSON ở tab Body
+        syncPayloadToBodyEditor(index, parsed);
+
+        showToast("💾 Đã lưu & đồng bộ Payload vào Tab Body! Nhấn [▶ Send] để test lại.");
       } catch (err) {
         alert("Lỗi cú pháp JSON trong Payload: " + err.message);
+      }
+    }
+
+    function syncPayloadToBodyEditor(index, newPayload) {
+      const bodyEditor = document.getElementById('bodyPayloads');
+      if (!bodyEditor) return;
+
+      const rawText = bodyEditor.value.trim();
+      if (!rawText) return;
+
+      try {
+        let bodyArray = JSON.parse(rawText);
+        if (!Array.isArray(bodyArray)) return;
+
+        const currentItem = window.lastBatchResults && window.lastBatchResults[index];
+        const targetTcId = currentItem ? currentItem.test_case_id : null;
+
+        // 1. Tìm vị trí theo testCaseId nếu có
+        let targetIndex = -1;
+        if (targetTcId) {
+          targetIndex = bodyArray.findIndex(item => item && (item.testCaseId === targetTcId || item.test_case_id === targetTcId));
+        }
+
+        // 2. Nếu không tìm thấy theo testCaseId thì đối chiếu theo index thứ tự
+        if (targetIndex === -1 && index >= 0 && index < bodyArray.length) {
+          targetIndex = index;
+        }
+
+        if (targetIndex !== -1) {
+          const itemInBody = bodyArray[targetIndex];
+          if (itemInBody && typeof itemInBody === 'object' && ('payload' in itemInBody || 'testCaseId' in itemInBody || 'expectedStatus' in itemInBody)) {
+            // Trường hợp là Object Test Case
+            bodyArray[targetIndex].payload = newPayload;
+          } else {
+            // Trường hợp là Raw Payload thuần
+            bodyArray[targetIndex] = newPayload;
+          }
+
+          bodyEditor.value = JSON.stringify(bodyArray, null, 2);
+          updatePayloadCount();
+        }
+      } catch (e) {
+        console.warn("Không thể đồng bộ vào tab Body do cú pháp JSON hiện tại trong tab Body bị lỗi:", e);
       }
     }
 
