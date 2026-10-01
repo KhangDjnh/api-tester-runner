@@ -113,16 +113,28 @@ class APITesterHandler(BaseHTTPRequestHandler):
             client = httpx.Client(timeout=15.0, follow_redirects=True)
 
             try:
-                for idx, payload in enumerate(payloads, start=1):
-                    # Sinh cURL command
-                    curl_cmd = generate_curl(method, target_url, req_headers, payload if method != "GET" else None)
+                for idx, item in enumerate(payloads, start=1):
+                    # Kiểm tra xem item là Test Case Object hay Raw Payload
+                    if isinstance(item, dict) and ("payload" in item or "testCaseId" in item or "expectedStatus" in item):
+                        test_case_id = item.get("testCaseId", f"TC{idx:02d}")
+                        description = item.get("description", "")
+                        expected_status = item.get("expectedStatus", None)
+                        actual_payload = item.get("payload", {})
+                    else:
+                        test_case_id = f"TC{idx:02d}"
+                        description = ""
+                        expected_status = None
+                        actual_payload = item
+
+                    # Sinh cURL command từ actual_payload
+                    curl_cmd = generate_curl(method, target_url, req_headers, actual_payload if method != "GET" else None)
                     start_time = time.perf_counter()
                     
                     try:
                         if method == "GET":
                             resp = client.request(method=method, url=target_url, params=params, headers=req_headers)
                         else:
-                            resp = client.request(method=method, url=target_url, params=params, headers=req_headers, json=payload)
+                            resp = client.request(method=method, url=target_url, params=params, headers=req_headers, json=actual_payload)
                         
                         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
@@ -131,37 +143,60 @@ class APITesterHandler(BaseHTTPRequestHandler):
                         except Exception:
                             resp_data = resp.text
 
+                        # Đánh giá PASS / FAIL:
+                        # Nếu có expectedStatus thì kiểm tra resp.status_code == expectedStatus
+                        # Nếu không có expectedStatus thì mặc định là HTTP 2xx
+                        if expected_status is not None:
+                            try:
+                                is_passed = (int(resp.status_code) == int(expected_status))
+                            except (ValueError, TypeError):
+                                is_passed = False
+                        else:
+                            is_passed = (200 <= resp.status_code < 300)
+
                         results.append({
                             "stt": idx,
-                            "payload": payload,
+                            "test_case_id": test_case_id,
+                            "description": description,
+                            "expected_status": expected_status,
+                            "passed": is_passed,
+                            "success": is_passed,
+                            "payload": actual_payload,
                             "status_code": resp.status_code,
                             "status_text": resp.reason_phrase if hasattr(resp, "reason_phrase") else "OK",
                             "elapsed_ms": elapsed_ms,
                             "headers": dict(resp.headers),
                             "response": resp_data,
-                            "curl": curl_cmd,
-                            "success": 200 <= resp.status_code < 300
+                            "curl": curl_cmd
                         })
                     except Exception as req_err:
                         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
                         results.append({
                             "stt": idx,
-                            "payload": payload,
+                            "test_case_id": test_case_id,
+                            "description": description,
+                            "expected_status": expected_status,
+                            "passed": False,
+                            "success": False,
+                            "payload": actual_payload,
                             "status_code": 0,
                             "status_text": "Connection Error",
                             "elapsed_ms": elapsed_ms,
                             "headers": {},
                             "response": {"error": str(req_err)},
-                            "curl": curl_cmd,
-                            "success": False
+                            "curl": curl_cmd
                         })
             finally:
                 client.close()
 
+            passed_count = sum(1 for r in results if r["passed"])
+            failed_count = sum(1 for r in results if not r["passed"])
+
             self._send_json(200, {
                 "total": len(results),
-                "success_count": sum(1 for r in results if r["success"]),
-                "failed_count": sum(1 for r in results if not r["success"]),
+                "passed_count": passed_count,
+                "failed_count": failed_count,
+                "success_count": passed_count,
                 "results": results
             })
             return

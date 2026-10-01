@@ -559,6 +559,60 @@
       border: 1px solid #ef4444;
     }
 
+    .tc-tag {
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: #4f46e5;
+      color: #ffffff;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .assertion-badge {
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-pass {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+
+    .badge-fail {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border: 1px solid #ef4444;
+    }
+
+    .expected-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .result-tc-desc {
+      padding: 8px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .item-failed {
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
     .result-body-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -964,7 +1018,7 @@
             Header <span id="headerCount" class="tab-badge">2</span>
           </button>
           <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
-            Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
+            Body (Test Cases / Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">26</span>
           </button>
           <button class="tab-btn" id="btn-tab-script" onclick="openTab('tab-script', this)">
             Script (Post-Response) <span class="tab-badge" style="background:#9333ea;">JS</span>
@@ -1052,15 +1106,283 @@
         <button class="btn-add-row" onclick="addRow('headerTable', 'header')">+ Thêm Header</button>
       </div>
 
-      <!-- Tab: Body (Mảng Payloads có STT) -->
+      <!-- Tab: Body (Mảng Test Cases / Payloads) -->
       <div id="tab-body" class="tab-content active">
         <div class="body-info-bar">
-          <span>* Định dạng luôn luôn là <strong>1 JSON Array</strong> chứa các Object payload (hỗ trợ biến <code>{{key}}</code>). Mỗi item tương ứng với 1 <strong>STT</strong> kiểm thử.</span>
-          <span id="detectedCountText">Phát hiện: 1 payload(s)</span>
+          <span>* Hỗ trợ <strong>Mảng Test Cases</strong> (chứa <code>testCaseId</code>, <code>description</code>, <code>expectedStatus</code>, <code>payload</code>) hoặc <strong>Mảng Payloads</strong> thuần (hỗ trợ biến <code>{{key}}</code>).</span>
+          <span id="detectedCountText">Phát hiện: 26 test case(s)</span>
         </div>
         <textarea id="bodyPayloads" class="body-editor" oninput="updatePayloadCount()">[
   {
-
+    "testCaseId": "TC01_DEFAULT_EMPTY",
+    "description": "Happy path - Payload rỗng, hệ thống áp dụng các giá trị mặc định (page=1, size=10, không filter)",
+    "expectedStatus": 200,
+    "payload": {}
+  },
+  {
+    "testCaseId": "TC02_PAGING_SORTING",
+    "description": "Happy path - Phân trang hợp lệ (page=2, size=20) và sắp xếp theo tên chi nhánh tăng dần",
+    "expectedStatus": 200,
+    "payload": {
+      "page": 2,
+      "size": 20,
+      "sort": "name:ASC"
+    }
+  },
+  {
+    "testCaseId": "TC03_SEARCH_KEYWORD_VIETNAMESE",
+    "description": "Happy path - Tìm kiếm từ khóa theo tên chi nhánh có dấu tiếng Việt (hệ thống tự unaccent)",
+    "expectedStatus": 200,
+    "payload": {
+      "search": "Hồ Chí Minh",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC04_SEARCH_KEYWORD_UNACCENT",
+    "description": "Happy path - Tìm kiếm từ khóa theo tên chi nhánh không dấu, viết thường",
+    "expectedStatus": 200,
+    "payload": {
+      "search": "ha noi",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC05_FILTER_BY_BRANCH_CODES",
+    "description": "Happy path - Lọc theo danh sách mã chi nhánh (code)",
+    "expectedStatus": 200,
+    "payload": {
+      "code": ["CN001", "PGD002", "MB_HO"],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC06_FILTER_BY_LOCATION",
+    "description": "Happy path - Lọc theo khu vực địa lý: Danh sách tỉnh/thành phố và phường/xã",
+    "expectedStatus": 200,
+    "payload": {
+      "provinceId": [
+        "11111111-1111-1111-1111-111111111111",
+        "22222222-2222-2222-2222-222222222222"
+      ],
+      "wardId": [
+        "33333333-3333-3333-3333-333333333333"
+      ],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC07_FILTER_BY_BRANCH_TYPES",
+    "description": "Happy path - Lọc theo danh sách loại chi nhánh (BranchType UUIDs)",
+    "expectedStatus": 200,
+    "payload": {
+      "branchTypeIds": [
+        "44444444-4444-4444-4444-444444444444",
+        "55555555-5555-5555-5555-555555555555"
+      ],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC08_FILTER_BY_IS_FEATURED",
+    "description": "Happy path - Lọc các chi nhánh nổi bật (isFeatured = true)",
+    "expectedStatus": 200,
+    "payload": {
+      "isFeatured": true,
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC09_FILTER_BY_WORKING_STATUS",
+    "description": "Happy path - Lọc theo trạng thái hoạt động: ACTIVE và WORKING_247",
+    "expectedStatus": 200,
+    "payload": {
+      "workingStatus": ["ACTIVE", "WORKING_247"],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC10_FILTER_BY_CMS_STATUS",
+    "description": "Happy path - Lọc theo trạng thái phê duyệt CMS: DRAFT và PUBLISHED",
+    "expectedStatus": 200,
+    "payload": {
+      "status": ["DRAFT", "PUBLISHED"],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC11_FILTER_DATE_RANGE_FULL",
+    "description": "Happy path - Lọc ngày cập nhật đầy đủ cả From và To (định dạng yyyy-MM-dd)",
+    "expectedStatus": 200,
+    "payload": {
+      "updatedAtFrom": "2026-01-01",
+      "updatedAtTo": "2026-03-31",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC12_FILTER_DATE_FROM_ONLY",
+    "description": "Happy path - Chỉ lọc từ ngày cập nhật trở đi (updatedAtFrom)",
+    "expectedStatus": 200,
+    "payload": {
+      "updatedAtFrom": "2026-01-01",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC13_FILTER_DATE_TO_ONLY",
+    "description": "Happy path - Chỉ lọc đến ngày cập nhật (updatedAtTo)",
+    "expectedStatus": 200,
+    "payload": {
+      "updatedAtTo": "2026-12-31",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC14_QUICK_FILTER_PUBLISHED",
+    "description": "Happy path - Quick filter bài đã xuất bản của chính mình (published)",
+    "expectedStatus": 200,
+    "payload": {
+      "quickFilter": "published",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC15_QUICK_FILTER_DRAFT",
+    "description": "Happy path - Quick filter bài nháp của chính mình (draft)",
+    "expectedStatus": 200,
+    "payload": {
+      "quickFilter": "draft",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC16_QUICK_FILTER_MINE",
+    "description": "Happy path - Quick filter tất cả các bản ghi do chính tôi tạo (mine)",
+    "expectedStatus": 200,
+    "payload": {
+      "quickFilter": "mine",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC17_QUICK_FILTER_REJECTED",
+    "description": "Happy path - Quick filter các bản ghi bị từ chối của tôi (rejected)",
+    "expectedStatus": 200,
+    "payload": {
+      "quickFilter": "rejected",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC18_QUICK_FILTER_PENDING_APPROVAL",
+    "description": "Happy path - Quick filter các bản ghi đang chờ cấp của tôi duyệt (pending_my_approval)",
+    "expectedStatus": 200,
+    "payload": {
+      "quickFilter": "pending_my_approval",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC19_COMBINED_MULTI_CRITERIA",
+    "description": "Happy path - Kết hợp đa điều kiện (Search + Province + BranchType + Status + Date range + Sort)",
+    "expectedStatus": 200,
+    "payload": {
+      "search": "Chi nhánh Ba Đình",
+      "provinceId": ["11111111-1111-1111-1111-111111111111"],
+      "branchTypeIds": ["44444444-4444-4444-4444-444444444444"],
+      "isFeatured": false,
+      "workingStatus": ["ACTIVE"],
+      "status": ["PUBLISHED"],
+      "updatedAtFrom": "2026-01-01",
+      "updatedAtTo": "2026-10-01",
+      "page": 1,
+      "size": 10,
+      "sort": "updatedAt:DESC"
+    }
+  },
+  {
+    "testCaseId": "TC20_BOUNDARY_MAX_SIZE",
+    "description": "Boundary case - Kiểm tra lấy kích thước tối đa cho phép size = 100",
+    "expectedStatus": 200,
+    "payload": {
+      "page": 1,
+      "size": 100
+    }
+  },
+  {
+    "testCaseId": "TC21_NEGATIVE_UNKNOWN_FIELD",
+    "description": "Negative case - Gửi kèm field lạ ngoài whitelist (bị RequestBodyValidationHelper chặn)",
+    "expectedStatus": 400,
+    "payload": {
+      "page": 1,
+      "size": 10,
+      "extraFieldNotAllowed": "hack_attempt"
+    }
+  },
+  {
+    "testCaseId": "TC22_NEGATIVE_INVALID_PAGE_MIN",
+    "description": "Negative case - Vi phạm validation @Min(1) của page (page = 0)",
+    "expectedStatus": 400,
+    "payload": {
+      "page": 0,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC23_NEGATIVE_EXCEED_MAX_SIZE",
+    "description": "Negative case - Vi phạm validation @Max(100) của size (size = 150)",
+    "expectedStatus": 400,
+    "payload": {
+      "page": 1,
+      "size": 150
+    }
+  },
+  {
+    "testCaseId": "TC24_NEGATIVE_INVALID_DATE_FORMAT",
+    "description": "Negative case - Sai định dạng LocalDate (gửi kèm cả giờ HH:mm:ss thay vì yyyy-MM-dd)",
+    "expectedStatus": 400,
+    "payload": {
+      "updatedAtFrom": "2026-01-01T10:30:00",
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC25_NEGATIVE_INVALID_UUID",
+    "description": "Negative case - Gửi UUID tỉnh/thành sai định dạng chuỗi UUID",
+    "expectedStatus": 400,
+    "payload": {
+      "provinceId": ["invalid-uuid-string-12345"],
+      "page": 1,
+      "size": 10
+    }
+  },
+  {
+    "testCaseId": "TC26_NEGATIVE_SEARCH_EXCEED_LENGTH",
+    "description": "Negative case - Chuỗi search vượt quá @Size(max = 200)",
+    "expectedStatus": 400,
+    "payload": {
+      "search": "Chi nhánh MB Bank có độ dài ký tự cực lớn vượt quá giới hạn 200 ký tự..................................................................................................................................................................................................",
+      "page": 1,
+      "size": 10
+    }
   }
 ]</textarea>
       </div>
@@ -1554,7 +1876,10 @@ results.forEach(res => {
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
           document.getElementById('payloadCount').innerText = parsed.length;
-          document.getElementById('detectedCountText').innerText = `Phát hiện: ${parsed.length} payload(s)`;
+          const isTestCase = parsed.length > 0 && typeof parsed[0] === 'object' && ('testCaseId' in parsed[0] || 'expectedStatus' in parsed[0] || 'payload' in parsed[0]);
+          document.getElementById('detectedCountText').innerText = isTestCase
+            ? `Phát hiện: ${parsed.length} test case(s)`
+            : `Phát hiện: ${parsed.length} payload(s)`;
           document.getElementById('detectedCountText').style.color = 'var(--accent)';
         } else {
           document.getElementById('detectedCountText').innerText = 'Cảnh báo: Dữ liệu chưa phải là 1 Array [...]';
@@ -1968,8 +2293,9 @@ results.forEach(res => {
 
     function renderResults(data) {
       document.getElementById('totalStat').innerText = `Tổng: ${data.total}`;
-      document.getElementById('successStat').innerText = `Thành công (2xx): ${data.success_count}`;
-      document.getElementById('failStat').innerText = `Lỗi / Thất bại: ${data.failed_count}`;
+      const passedCount = data.passed_count !== undefined ? data.passed_count : data.success_count;
+      document.getElementById('successStat').innerText = `PASSED: ${passedCount}`;
+      document.getElementById('failStat').innerText = `FAILED: ${data.failed_count}`;
 
       // Lưu kết quả vào biến toàn cục trên window để truy xuất an toàn theo index (không bị lỗi escape quote trong inline HTML)
       window.lastBatchResults = data.results || [];
@@ -1989,12 +2315,35 @@ results.forEach(res => {
         const payloadTreeHtml = buildJsonTree(res.payload);
         const respTreeHtml = buildJsonTree(res.response);
 
+        // Assertion Badge & Expected Status
+        let assertionHtml = "";
+        if (res.expected_status !== undefined && res.expected_status !== null) {
+          const passClass = res.passed ? "badge-pass" : "badge-fail";
+          const passIcon = res.passed ? "✓ PASSED" : "✗ FAILED";
+          assertionHtml = `
+            <span class="assertion-badge ${passClass}">${passIcon}</span>
+            <span class="expected-tag" title="HTTP Status kỳ vọng">Kỳ vọng: ${res.expected_status}</span>
+          `;
+        }
+
+        // Test Case ID Tag
+        const tcTag = res.test_case_id 
+          ? `<span class="tc-tag" title="Mã Test Case">${escapeHtml(res.test_case_id)}</span>`
+          : `<span class="stt-tag">STT #${res.stt}</span>`;
+
+        // Description
+        const descHtml = res.description 
+          ? `<div class="result-tc-desc">📌 <strong>Kịch bản:</strong> ${escapeHtml(res.description)}</div>`
+          : "";
+
         const item = document.createElement('div');
-        item.className = "result-item";
+        item.className = `result-item ${res.passed === false ? 'item-failed' : ''}`;
         item.innerHTML = `
           <div class="result-item-header">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span class="stt-tag">STT #${res.stt}</span>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="stt-tag">#${res.stt}</span>
+              ${tcTag}
+              ${assertionHtml}
               <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${res.status_text}</span>
               <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
             </div>
@@ -2002,11 +2351,12 @@ results.forEach(res => {
               <button class="curl-btn" onclick="copyCurlByIndex(${index}, this)">Copy cURL</button>
             </div>
           </div>
+          ${descHtml}
           <div class="result-body-grid">
             <!-- CỘT REQUEST PAYLOAD (CÓ THU GỌN OBJECT) -->
             <div class="grid-col">
               <div class="grid-col-title">
-                <span>Payload Gửi Đi (STT #${res.stt})</span>
+                <span>Payload Gửi Đi (${res.test_case_id || 'STT #' + res.stt})</span>
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${payloadId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${payloadId}')">- Thu gọn</button>
@@ -2021,7 +2371,7 @@ results.forEach(res => {
             <!-- CỘT RESPONSE NHẬN ĐƯỢC (CÓ THU GỌN OBJECT) -->
             <div class="grid-col">
               <div class="grid-col-title">
-                <span>Response Nhận Được (STT #${res.stt})</span>
+                <span>Response Nhận Được (${res.test_case_id || 'STT #' + res.stt})</span>
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${respId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${respId}')">- Thu gọn</button>
