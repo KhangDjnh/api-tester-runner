@@ -589,8 +589,9 @@
       background: #151f32;
       border-top: 1px solid var(--border-color);
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
+      gap: 10px;
     }
 
     /* Toast Notification */
@@ -644,7 +645,6 @@
         <button class="btn-import-curl" onclick="openCurlModal()">
           <span>📥 Dán cURL (Import cURL)</span>
         </button>
-        <button class="btn-secondary" onclick="loadSampleData()">Nạp mẫu: Search Branch</button>
         <button class="btn-secondary" onclick="formatJSON()">Beautify JSON</button>
       </div>
     </header>
@@ -663,7 +663,7 @@
         class="url-input" 
         type="text" 
         placeholder="https://your-api.com/api/v1/resource"
-        value="http://127.0.0.1:8000/api/v1/branches/search"
+        value=""
       />
       <button id="btnSend" class="btn-send" onclick="runBatchTest()">
         <span id="btnIcon">▶</span>
@@ -684,7 +684,7 @@
           Header <span id="headerCount" class="tab-badge">2</span>
         </button>
         <button class="tab-btn active" id="btn-tab-body" onclick="openTab('tab-body', this)">
-          Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">5</span>
+          Body (Mảng Payloads) <span id="payloadCount" class="tab-badge" style="background:#0284c7;">1</span>
         </button>
       </div>
 
@@ -717,14 +717,14 @@
           <div>
             <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Loại xác thực (Auth Type):</label>
             <select id="authType" class="kv-input" style="font-family:'Inter';" onchange="onAuthTypeChange()">
+              <option value="none">Không xác thực (No Auth)</option>
               <option value="bearer">Bearer Token</option>
               <option value="apikey">API Key (X-API-KEY)</option>
-              <option value="none">Không xác thực (No Auth)</option>
             </select>
           </div>
-          <div id="tokenGroup">
+          <div id="tokenGroup" style="display:none;">
             <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Token / Secret Key:</label>
-            <input id="authToken" class="kv-input" value="test-secret-token-123456" placeholder="Bearer jwt_token..." />
+            <input id="authToken" class="kv-input" value="" placeholder="Bearer jwt_token..." />
           </div>
         </div>
       </div>
@@ -762,36 +762,11 @@
       <div id="tab-body" class="tab-content active">
         <div class="body-info-bar">
           <span>* Định dạng luôn luôn là <strong>1 JSON Array</strong> chứa các Object payload. Mỗi item tương ứng với 1 <strong>STT</strong> kiểm thử.</span>
-          <span id="detectedCountText">Phát hiện: 5 payload(s)</span>
+          <span id="detectedCountText">Phát hiện: 1 payload(s)</span>
         </div>
         <textarea id="bodyPayloads" class="body-editor" oninput="updatePayloadCount()">[
   {
-    "_case": "Case 1: Happy path tìm kiếm Hà Nội",
-    "keyword": "Hà Nội",
-    "page": 1,
-    "page_size": 10
-  },
-  {
-    "_case": "Case 2: Filter theo city_code HN",
-    "city_code": "HN",
-    "page": 1,
-    "page_size": 10
-  },
-  {
-    "_case": "Case 3: Lỗi validate Page âm",
-    "page": -1,
-    "page_size": 10
-  },
-  {
-    "_case": "Case 4: Lỗi validate Page_size vượt quá 100",
-    "page": 1,
-    "page_size": 150
-  },
-  {
-    "_case": "Case 5: Payload tìm kiếm không có dữ liệu",
-    "keyword": "DiaDiemKhongTonTai999",
-    "page": 1,
-    "page_size": 10
+
   }
 ]</textarea>
       </div>
@@ -810,7 +785,7 @@
 
       <div class="results-list" id="resultsList">
         <div class="empty-state">
-          Chưa thực thi kiểm thử. Nhấn nút <strong>"Send & Test"</strong> để gửi mảng payload và xem kết quả theo đúng STT.
+          Chưa thực thi kiểm thử. Dán cURL hoặc điền URL & mảng payload rồi nhấn <strong>"Send & Test"</strong> để bắt đầu.
         </div>
       </div>
     </div>
@@ -832,21 +807,16 @@
           class="curl-textarea" 
           placeholder="Dán câu lệnh curl tại đây...
 Ví dụ:
-curl --location 'http://localhost:8081/v1/...' \
+curl --location 'https://api.example.com/v1/resource' \
 --header 'content-type: application/json' \
 --data '{ ... }'"
         ></textarea>
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="loadUserExampleCurl()">
-          💡 Nạp nhanh cURL Image Search của bạn
+        <button class="btn-secondary" onclick="closeCurlModal()">Đóng</button>
+        <button class="btn-send" onclick="handleImportCurl()">
+          <span>Phân Tích & Nạp Vào UI</span>
         </button>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-secondary" onclick="closeCurlModal()">Đóng</button>
-          <button class="btn-send" onclick="handleImportCurl()">
-            <span>Phân Tích & Nạp Vào UI</span>
-          </button>
-        </div>
       </div>
     </div>
   </div>
@@ -957,35 +927,6 @@ curl --location 'http://localhost:8081/v1/...' \
       document.getElementById('curlModal').classList.remove('active');
     }
 
-    function loadUserExampleCurl() {
-      const userCurl = `curl --location 'http://localhost:8081/v1/image-gallery/folders/79a663cc-90a6-480f-adef-e32ebbdc9774/images/search' \\
---header 'accept: application/json, text/plain, */*' \\
---header 'accept-language: en-US,en;q=0.9,vi;q=0.8' \\
---header 'content-type: application/json' \\
---header 'origin: https://mb-cms.simbatech.site' \\
---header 'priority: u=1, i' \\
---header 'referer: https://mb-cms.simbatech.site/dashboard/static-page/photo-gallery/?galleryView=list&galleryParentId=79a663cc-90a6-480f-adef-e32ebbdc9774' \\
---header 'sec-ch-ua: "Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"' \\
---header 'sec-ch-ua-mobile: ?0' \\
---header 'sec-ch-ua-platform: "Linux"' \\
---header 'sec-fetch-dest: empty' \\
---header 'sec-fetch-mode: cors' \\
---header 'sec-fetch-site: same-origin' \\
---header 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36' \\
---header 'x-csrf-token: gSmJP-LS-MYHHz4R7l-G1g.OiQ_hvdoamwWSSwp7rhB50mJT31_28rLj42r5BBlSQI' \\
---header 'x-login-user: cbnv4' \\
---header 'Cookie: cms_session=W4Lug5zKhfJMqPBxinv5xzshQVXpMTpS2De2wd8eCe4' \\
---data '{
-    "index": 1,
-    "size": 20,
-    "parentId": "79a663cc-90a6-480f-adef-e32ebbdc9774",
-    "fromUpdateDate": "2026-09-30",
-    "toUpdateDate": "2026-10-01",
-    "sort": "sortOrder:ASC"
-}'`;
-      document.getElementById('curlInput').value = userCurl;
-    }
-
     // --- Parser Lệnh cURL ---
     function parseCurlCommand(raw) {
       if (!raw || !raw.trim()) {
@@ -1003,13 +944,10 @@ curl --location 'http://localhost:8081/v1/...' \
       let match;
       while ((match = regex.exec(text)) !== null) {
         if (match[1] !== undefined) {
-          // Chuỗi nháy kép
           tokens.push(match[1].replace(/\\"/g, '"'));
         } else if (match[2] !== undefined) {
-          // Chuỗi nháy đơn
           tokens.push(match[2].replace(/\\'/g, "'"));
         } else {
-          // Từ đơn lẻ
           tokens.push(match[0]);
         }
       }
@@ -1035,7 +973,6 @@ curl --location 'http://localhost:8081/v1/...' \
           data = tokens[++i];
           if (!method) method = 'POST';
         } else if (token === '-L' || token === '--location') {
-          // Bỏ qua flag location
           continue;
         } else if (token.startsWith('http://') || token.startsWith('https://')) {
           url = token;
@@ -1098,7 +1035,6 @@ curl --location 'http://localhost:8081/v1/...' \
             const key = hStr.substring(0, colonIdx).trim();
             const val = hStr.substring(colonIdx + 1).trim();
 
-            // Nếu gặp Authorization header -> tự động nạp vào Authorize Tab
             if (key.toLowerCase() === 'authorization' && val.toLowerCase().startsWith('bearer ')) {
               document.getElementById('authType').value = 'bearer';
               document.getElementById('authToken').value = val.substring(7).trim();
@@ -1125,13 +1061,11 @@ curl --location 'http://localhost:8081/v1/...' \
         if (parsed.data) {
           try {
             let dataObj = JSON.parse(parsed.data);
-            // Quy tắc cốt lõi: Luôn luôn là 1 mảng các payload có STT
             if (!Array.isArray(dataObj)) {
               dataObj = [dataObj];
             }
             document.getElementById('bodyPayloads').value = JSON.stringify(dataObj, null, 2);
           } catch (e) {
-            // Không parse được JSON thì tạo mảng chứa raw string
             document.getElementById('bodyPayloads').value = `[\n  ${parsed.data}\n]`;
           }
         }
@@ -1139,7 +1073,7 @@ curl --location 'http://localhost:8081/v1/...' \
         updateCounts();
         updatePayloadCount();
 
-        // Chuyển sang Tab Body để người dùng thấy ngay payload đã được nạp
+        // Chuyển sang Tab Body
         openTab('tab-body', document.getElementById('btn-tab-body'));
 
         closeCurlModal();
@@ -1148,15 +1082,6 @@ curl --location 'http://localhost:8081/v1/...' \
       } catch (err) {
         alert("Lỗi khi phân tích lệnh cURL: " + err.message);
       }
-    }
-
-    function loadSampleData() {
-      document.getElementById('apiUrl').value = "http://127.0.0.1:8000/api/v1/branches/search";
-      document.getElementById('httpMethod').value = "POST";
-      document.getElementById('authType').value = "bearer";
-      document.getElementById('authToken').value = "test-secret-token-123456";
-      updatePayloadCount();
-      showToast("Đã nạp mẫu Search Branch API!");
     }
 
     function collectTableData(tableId) {
@@ -1185,6 +1110,11 @@ curl --location 'http://localhost:8081/v1/...' \
       const authToken = document.getElementById('authToken').value.trim();
       const params = collectTableData('paramTable');
       const headers = collectTableData('headerTable');
+
+      if (!url) {
+        alert("Vui lòng nhập URL API cần test hoặc dán cURL!");
+        return;
+      }
 
       let payloads = [];
       try {
