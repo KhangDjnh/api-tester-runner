@@ -711,12 +711,29 @@
     }
 
     .curl-btn {
-      background: transparent;
-      border: none;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
       color: var(--accent);
       cursor: pointer;
       font-size: 0.75rem;
-      text-decoration: underline;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .curl-btn:hover {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    .curl-btn.copied {
+      background: rgba(16, 185, 129, 0.25) !important;
+      border-color: #10b981 !important;
+      color: #34d399 !important;
     }
 
     .empty-state {
@@ -844,27 +861,29 @@
       font-weight: 500;
     }
 
-    /* Toast Notification */
+    /* Toast Notification: Đặt ở góc trên bên phải nổi bật */
     .toast {
       position: fixed;
-      bottom: 24px;
+      top: 24px;
       right: 24px;
       background: #0284c7;
       color: white;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       display: none;
       z-index: 10000;
-      animation: toastIn 0.3s ease-out;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      animation: toastIn 0.25s ease-out;
     }
 
     @keyframes toastIn {
-      from { transform: translateY(20px); opacity: 0; }
+      from { transform: translateY(-20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+
 
     /* Spinner */
     .spinner {
@@ -1799,11 +1818,49 @@ results.forEach(res => {
       showToast("📁 Đã thu gọn các object!");
     }
 
-    function copyContainerJson(dataStr) {
-      const json = decodeURIComponent(dataStr);
-      navigator.clipboard.writeText(json);
-      showToast("📋 Đã copy JSON!");
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      } else {
+        return new Promise((resolve, reject) => {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            const successful = document.execCommand('copy');
+            textArea.remove();
+            successful ? resolve() : reject(new Error("Không thể copy"));
+          } catch (err) {
+            textArea.remove();
+            reject(err);
+          }
+        });
+      }
     }
+
+    function copyContainerJson(dataStr, btn) {
+      const json = decodeURIComponent(dataStr);
+      copyToClipboard(json).then(() => {
+        showToast("📋 Đã sao chép JSON thành công!");
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = "✓ Đã copy!";
+          btn.style.color = "#34d399";
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.style.color = "";
+          }, 2000);
+        }
+      }).catch(() => {
+        showToast("⚠️ Không thể tự động copy, vui lòng thử lại!");
+      });
+    }
+
 
     // ==========================================
     // 6. CHẠY BATCH TEST & KẾT HỢP SCRIPT
@@ -1917,7 +1974,7 @@ results.forEach(res => {
               <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
-              <button class="curl-btn" onclick="copyCurl('${encodeURIComponent(res.curl)}')">Copy cURL</button>
+              <button class="curl-btn" onclick="copyCurl('${encodeURIComponent(res.curl)}', this)">Copy cURL</button>
             </div>
           </div>
           <div class="result-body-grid">
@@ -1928,7 +1985,7 @@ results.forEach(res => {
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${payloadId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${payloadId}')">- Thu gọn</button>
-                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${payloadRawStr}')">📋 Copy</button>
+                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${payloadRawStr}', this)">📋 Copy</button>
                 </div>
               </div>
               <div id="${payloadId}" class="json-tree-container">
@@ -1943,7 +2000,7 @@ results.forEach(res => {
                 <div class="viewer-tools">
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${respId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${respId}')">- Thu gọn</button>
-                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${respRawStr}')">📋 Copy</button>
+                  <button class="btn-tool" title="Copy JSON" onclick="copyContainerJson('${respRawStr}', this)">📋 Copy</button>
                 </div>
               </div>
               <div id="${respId}" class="json-tree-container">
@@ -1956,11 +2013,24 @@ results.forEach(res => {
       });
     }
 
-    function copyCurl(encodedCurl) {
+    function copyCurl(encodedCurl, btn) {
       const curl = decodeURIComponent(encodedCurl);
-      navigator.clipboard.writeText(curl);
-      showToast("📋 Đã sao chép lệnh cURL!");
+      copyToClipboard(curl).then(() => {
+        showToast("📋 Đã sao chép câu lệnh cURL thành công!");
+        if (btn) {
+          const origText = btn.innerHTML;
+          btn.classList.add('copied');
+          btn.innerHTML = "✓ Đã copy cURL!";
+          setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = origText;
+          }, 2000);
+        }
+      }).catch(() => {
+        prompt("Sao chép câu lệnh cURL thủ công bên dưới:", curl);
+      });
     }
+
 
     function escapeHtml(str) {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
