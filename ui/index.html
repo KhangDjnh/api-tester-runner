@@ -890,6 +890,107 @@
       color: #34d399 !important;
     }
 
+    .btn-send-single {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: 1px solid #10b981;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-send-single:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-send-single:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .payload-edit-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .payload-inline-textarea {
+      width: 100%;
+      min-height: 220px;
+      max-height: 480px;
+      background: #090d16;
+      color: #38bdf8;
+      border: 1px solid #0284c7;
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .payload-inline-textarea:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+    }
+
+    .payload-edit-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-save-payload {
+      background: #0284c7;
+      border: 1px solid #38bdf8;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save-payload:hover {
+      background: #0369a1;
+    }
+
+    .btn-cancel-payload {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel-payload:hover {
+      background: #475569;
+    }
+
+    .btn-tool.editing-active {
+      background: #0284c7 !important;
+      color: white !important;
+      border-color: #38bdf8 !important;
+    }
+
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -2474,16 +2575,18 @@ results.forEach(res => {
                 📌 <strong>Mô tả:</strong> ${escapeHtml(res.description || 'Không có mô tả')}
               </div>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
+            <div style="display:flex; gap:8px; align-items:center;">
               <button class="curl-btn" onclick="copyCurlByIndex(${index}, this)">Copy cURL</button>
+              <button class="btn-send-single" onclick="sendSingleRequest(${index}, this)" title="Gửi lại riêng lẻ request này">▶ Send</button>
             </div>
           </div>
           <div class="result-body-grid">
-            <!-- CỘT REQUEST PAYLOAD (CÓ THU GỌN OBJECT) -->
+            <!-- CỘT REQUEST PAYLOAD (CÓ THU GỌN OBJECT VÀ CHỈNH SỬA) -->
             <div class="grid-col">
               <div class="grid-col-title">
                 <span>Payload Gửi Đi (${escapeHtml(res.test_case_id || '')})</span>
                 <div class="viewer-tools">
+                  <button class="btn-tool" id="btn-edit-${index}" title="Chỉnh sửa Payload" onclick="toggleEditPayload(${index})">✏️ Sửa</button>
                   <button class="btn-tool" title="Mở rộng tất cả" onclick="expandAllInContainer('${payloadId}')">+ Mở hết</button>
                   <button class="btn-tool" title="Thu gọn tất cả" onclick="collapseAllInContainer('${payloadId}')">- Thu gọn</button>
                   <button class="btn-tool" title="Copy JSON" onclick="copyResultJsonByIndex(${index}, 'payload', this)">📋 Copy</button>
@@ -2491,6 +2594,13 @@ results.forEach(res => {
               </div>
               <div id="${payloadId}" class="json-tree-container">
                 ${payloadTreeHtml}
+              </div>
+              <div id="payload-edit-box-${index}" class="payload-edit-wrapper" style="display:none;">
+                <textarea id="payload-editor-${index}" class="payload-inline-textarea" spellcheck="false" placeholder="Nhập JSON payload tại đây..."></textarea>
+                <div class="payload-edit-actions">
+                  <button class="btn-save-payload" onclick="savePayloadEdit(${index})">💾 Lưu thay đổi</button>
+                  <button class="btn-cancel-payload" onclick="cancelPayloadEdit(${index})">✕ Hủy</button>
+                </div>
               </div>
             </div>
 
@@ -2512,6 +2622,238 @@ results.forEach(res => {
         `;
         list.appendChild(item);
       });
+    }
+
+    // ==========================================
+    // CHỈNH SỬA PAYLOAD VÀ GỬI LẠI TỪNG REQUEST
+    // ==========================================
+    function toggleEditPayload(index) {
+      const editBox = document.getElementById(`payload-edit-box-${index}`);
+      const treeContainer = document.getElementById(`payload-tree-${index}`);
+      const btnEdit = document.getElementById(`btn-edit-${index}`);
+      const textarea = document.getElementById(`payload-editor-${index}`);
+
+      if (!editBox || !treeContainer) return;
+
+      const isEditing = editBox.style.display !== 'none';
+      if (isEditing) {
+        editBox.style.display = 'none';
+        treeContainer.style.display = 'block';
+        if (btnEdit) {
+          btnEdit.innerHTML = "✏️ Sửa";
+          btnEdit.classList.remove('editing-active');
+        }
+      } else {
+        const item = window.lastBatchResults && window.lastBatchResults[index];
+        if (item) {
+          textarea.value = JSON.stringify(item.payload || {}, null, 2);
+        }
+        treeContainer.style.display = 'none';
+        editBox.style.display = 'flex';
+        if (btnEdit) {
+          btnEdit.innerHTML = "👁️ Hủy sửa";
+          btnEdit.classList.add('editing-active');
+        }
+        textarea.focus();
+      }
+    }
+
+    function savePayloadEdit(index) {
+      const textarea = document.getElementById(`payload-editor-${index}`);
+      const editBox = document.getElementById(`payload-edit-box-${index}`);
+      const treeContainer = document.getElementById(`payload-tree-${index}`);
+      const btnEdit = document.getElementById(`btn-edit-${index}`);
+
+      if (!textarea) return;
+
+      try {
+        const parsed = JSON.parse(textarea.value.trim() || '{}');
+        if (window.lastBatchResults && window.lastBatchResults[index]) {
+          window.lastBatchResults[index].payload = parsed;
+          
+          // Tạo lại cURL tương ứng với payload mới
+          const method = document.getElementById('httpMethod').value;
+          const url = substituteVariables(document.getElementById('apiUrl').value.trim());
+          const headers = collectTableData('headerTable');
+          
+          window.lastBatchResults[index].curl = generateClientCurl(method, url, headers, parsed);
+        }
+
+        // Cập nhật lại cây JSON
+        treeContainer.innerHTML = buildJsonTree(parsed);
+        editBox.style.display = 'none';
+        treeContainer.style.display = 'block';
+        if (btnEdit) {
+          btnEdit.innerHTML = "✏️ Sửa";
+          btnEdit.classList.remove('editing-active');
+        }
+        showToast("💾 Đã lưu thay đổi Payload! Nhấn [▶ Send] để gửi lại.");
+      } catch (err) {
+        alert("Lỗi cú pháp JSON trong Payload: " + err.message);
+      }
+    }
+
+    function cancelPayloadEdit(index) {
+      const editBox = document.getElementById(`payload-edit-box-${index}`);
+      const treeContainer = document.getElementById(`payload-tree-${index}`);
+      const btnEdit = document.getElementById(`btn-edit-${index}`);
+
+      if (editBox && treeContainer) {
+        editBox.style.display = 'none';
+        treeContainer.style.display = 'block';
+      }
+      if (btnEdit) {
+        btnEdit.innerHTML = "✏️ Sửa";
+        btnEdit.classList.remove('editing-active');
+      }
+    }
+
+    function generateClientCurl(method, url, headers, json_data) {
+      const parts = [`curl -X ${method} '${url}'`];
+      for (const [k, v] of Object.entries(headers)) {
+        parts.push(`-H '${k}: ${v}'`);
+      }
+      if (json_data !== null && json_data !== undefined && method !== "GET") {
+        parts.push(`-d '${JSON.stringify(json_data)}'`);
+      }
+      return parts.join(" \\\n    ");
+    }
+
+    async function sendSingleRequest(index, btn) {
+      const item = window.lastBatchResults && window.lastBatchResults[index];
+      if (!item) {
+        showToast("⚠️ Không tìm thấy dữ liệu kịch bản để gửi!");
+        return;
+      }
+
+      const url = substituteVariables(document.getElementById('apiUrl').value.trim());
+      if (!url) {
+        alert("Vui lòng nhập URL API cần test hoặc dán cURL!");
+        return;
+      }
+
+      const method = document.getElementById('httpMethod').value;
+      const headers = collectTableData('headerTable');
+      const params = collectTableData('paramTable');
+      const authType = document.getElementById('authType').value;
+      const authToken = substituteVariables(document.getElementById('authToken').value.trim());
+
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner" style="width:11px; height:11px; border-width:2px; display:inline-block; margin-right:4px;"></span> Gửi...`;
+
+      try {
+        const payloadToSend = {
+          testCaseId: item.test_case_id,
+          description: item.description,
+          expectedStatus: item.expected_status,
+          payload: item.payload
+        };
+
+        const response = await fetch('/api/run-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            method,
+            url,
+            params,
+            headers,
+            authType,
+            authToken,
+            payloads: [payloadToSend]
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Lỗi server khi gửi request");
+        }
+
+        if (data.results && data.results.length > 0) {
+          const newRes = data.results[0];
+          newRes.stt = item.stt;
+          
+          // Cập nhật lại trong window.lastBatchResults
+          window.lastBatchResults[index] = newRes;
+
+          // Cập nhật DOM của result-item này
+          updateSingleResultDOM(index, newRes);
+
+          // Cập nhật lại thống kê chung (total, passed, failed)
+          updateStatsSummary();
+
+          // Chạy Script (Post-Response) cho kết quả này
+          runPostResponseScript([newRes]);
+
+          const statusText = newRes.passed ? "PASSED" : "FAILED";
+          showToast(`🚀 Đã gửi [${newRes.test_case_id || 'TC'}]: HTTP ${newRes.status_code} (${statusText})`);
+        }
+      } catch (err) {
+        showToast("❌ Lỗi khi gửi request: " + err.message);
+      } finally {
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
+      }
+    }
+
+    function updateSingleResultDOM(index, res) {
+      const card = document.querySelector(`[data-tc-id="${CSS.escape(res.test_case_id || `TC${index+1}`)}"]`);
+      if (!card) return;
+
+      // Cập nhật border failed
+      if (res.passed === false) {
+        card.classList.add('item-failed');
+      } else {
+        card.classList.remove('item-failed');
+      }
+
+      // Cập nhật status badge
+      let badgeClass = "status-2xx";
+      if (res.status_code >= 400 && res.status_code < 500) badgeClass = "status-4xx";
+      if (res.status_code >= 500 || res.status_code === 0) badgeClass = "status-5xx";
+
+      const headerBadges = card.querySelector('.result-header-left > div');
+      if (headerBadges) {
+        let assertionHtml = "";
+        if (res.expected_status !== undefined && res.expected_status !== null) {
+          const passClass = res.passed ? "badge-pass" : "badge-fail";
+          const passIcon = res.passed ? "✓ PASSED" : "✗ FAILED";
+          assertionHtml = `
+            <span class="assertion-badge ${passClass}">${passIcon}</span>
+            <span class="expected-tag" title="HTTP Status kỳ vọng">Kỳ vọng: ${res.expected_status}</span>
+          `;
+        }
+        const tcTag = `<span class="tc-tag" title="Mã Test Case">${escapeHtml(res.test_case_id || `TC${index + 1}`)}</span>`;
+
+        headerBadges.innerHTML = `
+          ${tcTag}
+          ${assertionHtml}
+          <span class="status-badge ${badgeClass}">${res.status_code || 'ERR'} ${res.status_text}</span>
+          <span style="font-size:0.8rem; color:var(--text-muted);">${res.elapsed_ms} ms</span>
+        `;
+      }
+
+      // Cập nhật response tree
+      const respContainer = document.getElementById(`resp-tree-${index}`);
+      if (respContainer) {
+        respContainer.innerHTML = buildJsonTree(res.response);
+      }
+    }
+
+    function updateStatsSummary() {
+      const results = window.lastBatchResults || [];
+      const total = results.length;
+      const passedCount = results.filter(r => r.passed).length;
+      const failedCount = total - passedCount;
+
+      document.getElementById('totalStat').innerText = `Tổng: ${total}`;
+      document.getElementById('successStat').innerText = `PASSED: ${passedCount}`;
+      const failStatEl = document.getElementById('failStat');
+      if (failedCount > 0) {
+        failStatEl.innerHTML = `🚨 FAILED: ${failedCount} <span style="font-size:0.75rem; text-decoration:underline; opacity:0.85;">(Xem chi tiết)</span>`;
+      } else {
+        failStatEl.innerText = `FAILED: 0`;
+      }
     }
 
     function openFailedModal() {
